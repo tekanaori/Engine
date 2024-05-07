@@ -1,13 +1,10 @@
-////////////////////////////////////////
-// "../../tcc/tcc" -run -I../include -I../include/winapi -I../include/libxml2 -L. -lavcodec-61 -lavformat-61 -lavutil-59 -lswresample-5 -lswscale-8 -lcurl-x64 -lxml2-2 -lportaudio -lglfw3 -lwinpthread-1 main.c
-//
-// Get-AppxPackage -AllUsers | where-object {$_.name -notlike "*store*"} | Remove-AppxPackage # Remove all except Store
-// Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon -> "Shell" (string type) -> "explorer.exe","YOUR_APP_PATH.exe" (value)
-////////////////////////////////////////
-#if 1 // Print text
-
-#ifndef ENGINE_PRINT_TEXT
-#define ENGINE_PRINT_TEXT
+/*
+ * "../../tcc/tcc" -run -I../include -I../include/winapi -I../include/libxml2 -L. -lavcodec-61 -lavformat-61 -lavutil-59 -lswresample-5 -lswscale-8 -lcurl-x64 -lxml2-2 -lglfw3 -lwinpthread-1 main.c
+ *
+ * Get-AppxPackage -AllUsers | where-object {$_.name -notlike "*store*"} | Remove-AppxPackage # Remove all except Store
+ * Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon -> "Shell" (string type) -> "explorer.exe","YOUR_APP_PATH.exe" (value)
+ */
+#if 1 /* Print text */
 
 #define PRINT_TEXT_CLEAR "\033[H\033[J"
 #define PRINT_TEXT_COLOR_RED "\x1B[31m"
@@ -20,17 +17,12 @@
 
 #define PRINT_TEXT(text) printf(PRINT_TEXT_COLOR_WHITE "%s:" PRINT_TEXT_COLOR_MAGENTA "%i" PRINT_TEXT_COLOR_WHITE ": in '" PRINT_TEXT_COLOR_BLUE "%s" PRINT_TEXT_COLOR_WHITE "' function: " PRINT_TEXT_COLOR_RED "%s" PRINT_TEXT_COLOR_WHITE "\n", __FILE__, __LINE__, __FUNCTION__, text)
 
-#endif // ENGINE_PRINT_TEXT
+#endif /* Print text */
 
-#endif // Print text
-
-////////////////////////////////////////
-// Wrappers
-////////////////////////////////////////
-#if 1 // Glad
-
-#ifndef ENGINE_OPENGL_WRAPPER
-#define ENGINE_OPENGL_WRAPPER
+/*
+ * Wrappers
+ */
+#if 1 /* Graphics - OpenGL - Glad */
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
@@ -40,14 +32,14 @@ GLuint ogl_texture_create(GLsizei width, GLsizei height, GLenum format, const vo
 
     glGenTextures(1, &texture);
 
-    if (texture != 0) {
+    if (texture > 0) {
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        // glGenerateMipmap(GL_TEXTURE_2D); /* OpenGL 3.0 */
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -57,7 +49,7 @@ GLuint ogl_texture_create(GLsizei width, GLsizei height, GLenum format, const vo
 GLuint ogl_shader_create(GLenum type, const GLchar* const* string) {
     GLuint shader;
 
-    if ((shader = glCreateShader(type)) != 0) {
+    if ((shader = glCreateShader(type)) > 0) {
         glShaderSource(shader, 1, string, NULL);
         glCompileShader(shader);
     }
@@ -68,7 +60,7 @@ GLuint ogl_shader_create(GLenum type, const GLchar* const* string) {
 GLuint ogl_program_create(GLuint* shaders, GLuint count) {
     GLuint program;
 
-    if ((program = glCreateProgram()) != 0) {
+    if ((program = glCreateProgram()) > 0) {
         for (GLuint i = 0; i < count; ++i) {
             glAttachShader(program, shaders[i]);
         }
@@ -79,12 +71,12 @@ GLuint ogl_program_create(GLuint* shaders, GLuint count) {
     return program;
 }
 
-GLuint ogl_buffer_create(GLenum target, GLsizeiptr buffer_size, const void* buffer_data) {
+GLuint ogl_buffer_create(GLenum target, GLsizeiptr size, const void* data) {
     GLuint buffer;
 
     glGenBuffers(1, &buffer);
     glBindBuffer(target, buffer);
-    glBufferData(target, buffer_size, buffer_data, GL_STATIC_DRAW);
+    glBufferData(target, size, data, GL_STATIC_DRAW);
     glBindBuffer(target, 0);
 
     return buffer;
@@ -96,6 +88,8 @@ void ogl_buffer_attribute(GLenum target, GLuint buffer, GLuint index, GLint size
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(target, 0);
 }
+
+/* OpenGL 4.3 */
 
 void ogl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user_param) {
     const char* source_string;
@@ -138,14 +132,9 @@ void ogl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum se
     PRINT_TEXT(message);
 }
 
-#endif // ENGINE_OPENGL_WRAPPER
+#endif /* Graphics - OpenGL - Glad */
 
-#endif // Glad
-
-#if 1 // cglm
-
-#ifndef ENGINE_CGLM_WRAPPER
-#define ENGINE_CGLM_WRAPPER
+#if 1 /* Mathematics - cglm */
 
 #include <cglm/cglm.h>
 
@@ -191,38 +180,9 @@ void cglm_view_move(vec3 axis, mat4 view, float value) {
     view[3][2] += glm_rad(front[0]) * value;
 }
 
-bool cglm_frustum_culling(mat4 matrix, vec3 box[2]) {
-    vec4 planes[6];
+#endif /* Mathematics - cglm */
 
-    glm_frustum_planes(matrix, planes);
-    return glm_aabb_frustum(box, planes);
-}
-
-/*
-bool cglm_frustum_culling2(mat4 projection, mat4 view, mat4 model) {
-    mat4 m;
-    vec4 corners[8];
-    vec3 box[2];
-    vec4 planes[6];
-
-    glm_mat4_identity(m);
-    glm_frustum_corners(m, corners);
-    glm_frustum_box(corners, model, box);
-    glm_mat4_mul(projection, view, m);
-    glm_frustum_planes(m, planes);
-
-    return glm_aabb_frustum(box, planes);
-}
-*/
-
-#endif // ENGINE_CGLM_WRAPPER
-
-#endif // cglm
-
-#if 1 // FFmpeg
-
-#ifndef ENGINE_FFMPEG_WRAPPER
-#define ENGINE_FFMPEG_WRAPPER
+#if 1 /* Multimedia - FFmpeg */
 
 #include <libavformat/avformat.h>
 
@@ -274,10 +234,6 @@ int ffmpeg_video_context_alloc(struct SwsContext** out_sws_context, AVCodecConte
 
 int ffmpeg_audio_context_alloc(struct SwrContext** out_swr_context, AVCodecContext* codec_context, enum AVSampleFormat sample_format) {
     int result;
-
-    // if (channels > 0) {
-    //     av_channel_layout_default(&codec_context->ch_layout, channels);
-    // }
 
     if ((result = swr_alloc_set_opts2(out_swr_context, &codec_context->ch_layout, sample_format, codec_context->sample_rate, &codec_context->ch_layout, codec_context->sample_fmt, codec_context->sample_rate, 0, NULL)) == 0) {
         if ((result = swr_init(out_swr_context[0])) == 0) {
@@ -331,6 +287,118 @@ int ffmpeg_from_memory_alloc(AVFormatContext** out_format_context, void* data, s
 }
 
 
+int ffmpeg_image_load_from_url(const char* url, uint8_t** out_pixels, int* out_width, int* out_height) {
+    AVFormatContext* format_context = NULL;
+    AVCodecContext* codec_context = NULL;
+    struct SwsContext* sws_context = NULL;
+    AVPacket* packet;
+    AVFrame* frame;
+    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
+    int pitch[4] = { 0, 0, 0, 0 };
+    int stream_index;
+    int result;
+
+    if ((result = ffmpeg_format_context_alloc(&format_context, url, AVMEDIA_TYPE_VIDEO, &stream_index)) == 0) {
+        if ((result = ffmpeg_codec_context_alloc(&codec_context, format_context->streams[stream_index]->codecpar, NULL)) == 0) {
+            if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
+                if ((packet = av_packet_alloc()) != NULL) {
+                    if ((frame = av_frame_alloc()) != NULL) {
+                        if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
+                            pitch[0] = codec_context->width * 4;
+
+                            if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
+                                if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
+                                    result = 0;
+
+                                    out_pixels[0] = pixels[0];
+                                    out_width[0] = frame->width;
+                                    out_height[0] = frame->height;
+                                }
+                            }
+                        }
+                        else {
+                            result = AVERROR(ENOMEM);
+                        }
+
+                        av_frame_free(&frame);
+                    }
+                    else {
+                        result = AVERROR(ENOMEM);
+                    }
+
+                    av_packet_free(&packet);
+                }
+                else {
+                    result = AVERROR(ENOMEM);
+                }
+
+                sws_freeContext(sws_context);
+            }
+
+            avcodec_free_context(&codec_context);
+        }
+
+        avformat_close_input(&format_context);
+    }
+
+    return result;
+}
+
+int ffmpeg_image_load_from_memory(void* data, size_t size, uint8_t** out_pixels, int* out_width, int* out_height) {
+    AVFormatContext* format_context = NULL;
+    AVCodecContext* codec_context = NULL;
+    struct SwsContext* sws_context = NULL;
+    AVPacket* packet;
+    AVFrame* frame;
+    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
+    int pitch[4] = { 0, 0, 0, 0 };
+    int stream_index;
+    int result;
+
+    if ((result = ffmpeg_from_memory_alloc(&format_context, data, size, AVMEDIA_TYPE_VIDEO, &stream_index, &codec_context, NULL)) == 0) {
+        if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
+            if ((packet = av_packet_alloc()) != NULL) {
+                if ((frame = av_frame_alloc()) != NULL) {
+                    if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
+                        pitch[0] = codec_context->width * 4;
+
+                        if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
+                            if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
+                                result = 0;
+
+                                out_pixels[0] = pixels[0];
+                                out_width[0] = frame->width;
+                                out_height[0] = frame->height;
+                            }
+                        }
+                    }
+                    else {
+                        result = AVERROR(ENOMEM);
+                    }
+
+                    av_frame_free(&frame);
+                }
+                else {
+                    result = AVERROR(ENOMEM);
+                }
+
+                av_packet_free(&packet);
+            }
+            else {
+                result = AVERROR(ENOMEM);
+            }
+
+            sws_freeContext(sws_context);
+        }
+
+        avcodec_free_context(&codec_context);
+        avformat_close_input(&format_context);
+    }
+
+    return result;
+}
+
+
 int ffmpeg_get_next_frame(AVFormatContext* format_context, AVPacket* packet, int stream_index, AVCodecContext* codec_context, AVFrame* frame) {
     int result;
 
@@ -374,62 +442,32 @@ int ffmpeg_seek(const int* run, AVFormatContext* format_context, double seconds,
     return result;
 }
 
-#endif // ENGINE_FFMPEG_WRAPPER
+#endif /* Multimedia - FFmpeg */
 
-#endif // FFmpeg
+#if 1 /* Audio - miniaudio */
 
-#if 1 // PortAudio
+#ifndef CP_UTF8
+    #define CP_UTF8 65001
+#endif /* CP_UTF8 */
+#define MA_NO_DECODING
+#define MA_NO_ENCODING
+#define MA_NO_WAV
+#define MA_NO_FLAC
+#define MA_NO_MP3
+#define MA_NO_NODE_GRAPH
+#define MA_NO_ENGINE
+#define MA_NO_GENERATION
+#ifdef __APPLE__
+    #define MA_NO_RUNTIME_LINKING
+#endif /* __APPLE__ */
+#define MINIAUDIO_IMPLEMENTATION
+#include <miniaudio.h>
 
-#ifndef ENGINE_PORTAUDIO_WRAPPER
-#define ENGINE_PORTAUDIO_WRAPPER
+#endif /* Audio - miniaudio */
 
-#include <portaudio.h>
+#if 1 /* Network - cURL */
 
-int pa_stream_callback(const void* input, void* output, unsigned long frame_count, const PaStreamCallbackTimeInfo* time_info, PaStreamCallbackFlags status_flags, void* user_data);
-
-PaError pa_audio_start(int channels, PaSampleFormat sample_format, double sample_rate, unsigned long frames_per_buffer, void* user_data) {
-    PaError error;
-
-    if ((error = Pa_Initialize()) == paNoError) {
-        PaStream* stream;
-
-        if ((error = Pa_OpenDefaultStream(&stream, 0, channels, sample_format, sample_rate, frames_per_buffer, pa_stream_callback, user_data)) == paNoError) {
-            if ((error = Pa_StartStream(stream)) == paNoError) {
-                while ((error = Pa_IsStreamActive(stream)) == 1) {
-                    Pa_Sleep(10);
-                }
-
-                if ((error = Pa_StopStream(stream)) != paNoError) {
-                    PRINT_TEXT(Pa_GetErrorText(error));
-                }
-            }
-
-            if ((error = Pa_CloseStream(stream)) != paNoError) {
-                PRINT_TEXT(Pa_GetErrorText(error));
-            }
-        }
-        else {
-            PRINT_TEXT(Pa_GetErrorText(error));
-        }
-
-        if ((error = Pa_Terminate()) != paNoError) {
-            PRINT_TEXT(Pa_GetErrorText(error));
-        }
-    }
-
-    return error;
-}
-
-#endif // ENGINE_PORTAUDIO_WRAPPER
-
-#endif // PortAudio
-
-#if 1 // cURL
-
-#ifndef ENGINE_CURL_WRAPPER
-#define ENGINE_CURL_WRAPPER
-
-#define __MINGW32__ // tcc: include/curl/system.h:464: error: ';' expected (got "curl_socklen_t")
+#define __MINGW32__ /* tcc: include/curl/system.h:464: error: ';' expected (got "curl_socklen_t") */
 #include <curl/curl.h>
 #undef __MINGW32__
 
@@ -451,7 +489,9 @@ size_t curl_write_function_callback(void* data, size_t size, size_t nmemb, void*
     return size * nmemb;
 }
 
-// First "sizeof(size_t)" (supposed 8 bytes) in "out_data" - data size.
+/**
+ * @note First "sizeof(size_t)" in "out_data" - data size.
+ */
 CURLcode curl_get_url_data(const char* url, void** out_data, long timeout_ms) {
     CURLcode curl_code;
 
@@ -485,16 +525,11 @@ CURLcode curl_get_url_data(const char* url, void** out_data, long timeout_ms) {
     return curl_code;
 }
 
-#endif // ENGINE_CURL_WRAPPER
+#endif /* Network - cURL */
 
-#endif // cURL
+#if 1 /* XML - libxml2 */
 
-#if 1 // libxml2
-
-#ifndef ENGINE_LIBXML2_WRAPPER
-#define ENGINE_LIBXML2_WRAPPER
-
-// Do not forget about libxml2-2.dll libiconv-2.dll liblzma-5.dll zlib1.dll
+/* Do not forget about libxml2-2.dll libiconv-2.dll liblzma-5.dll zlib1.dll */
 #include <libxml/HTMLparser.h>
 
 xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_name, const xmlChar* prop_value, const xmlChar* content) {
@@ -508,7 +543,7 @@ xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_n
                 is_it = 1;
 
                 if (prop_name != NULL) {
-                    if ((prop_data = xmlGetProp(node, prop_name)) == NULL) { // Do not forget to free up memory after xmlGetProp.
+                    if ((prop_data = xmlGetProp(node, prop_name)) == NULL) { /* Do not forget to free up memory after xmlGetProp. */
                         is_it = 0;
                     }
                 }
@@ -530,7 +565,7 @@ xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_n
 
                     is_it = 0;
 
-                    if ((node_content = xmlNodeGetContent(node)) != NULL) { // Do not forget to free up memory after xmlNodeGetContent.
+                    if ((node_content = xmlNodeGetContent(node)) != NULL) { /* Do not forget to free up memory after xmlNodeGetContent. */
                         if (xmlStrstr(node_content, content) != NULL) {
                             is_it = 1;
                         }
@@ -557,78 +592,21 @@ xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_n
     return NULL;
 }
 
-#endif // ENGINE_LIBXML2_WRAPPER
+#endif /* XML - libxml2 */
 
-#endif // libxml2
+/*
+ * Sandbox
+ */
+#include <pthread.h>
 
-#if 1 // cgltf
-
-#define CGLTF_IMPLEMENTATION
-#include <cgltf/cgltf.h>
-
-// accessor - cgltf_accessor pointer.
-// num_comp - 1/2/3/4 or 4/9/16, just use graphics_cgltf_type_to_count().
-#define GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, num_comp, data_type, dst_ptr) { \
-    cgltf_size _stride_ = 0; \
-    data_type* _buffer_ = (data_type*)accessor->buffer_view->buffer->data + accessor->buffer_view->offset / sizeof(data_type) + accessor->offset / sizeof(data_type); \
-    for (cgltf_size _i_ = 0; _i_ < accessor->count; ++_i_) { \
-        for (cgltf_size _j_ = 0; _j_ < num_comp; ++_j_) { \
-            (dst_ptr)[num_comp * _i_ + _j_] = _buffer_[_stride_ + _j_]; \
-        } \
-        _stride_ += (cgltf_size)(accessor->stride / sizeof(data_type)); \
-    } \
-}
-
-cgltf_size graphics_cgltf_type_to_count(cgltf_type type) {
-    return
-        type == cgltf_type_invalid ? 0 :
-        type == cgltf_type_scalar ? 1 :
-        type == cgltf_type_vec2 ? 2 :
-        type == cgltf_type_vec3 ? 3 :
-        type == cgltf_type_vec4 ? 4 :
-        type == cgltf_type_mat2 ? 4 : // 2 * 2
-        type == cgltf_type_mat3 ? 9 : // 3 * 3
-        type == cgltf_type_mat4 ? 16 : // 4 * 4
-        0;
-}
-
-void* graphics_cgltf_alloc_and_parse_accessor_data(const cgltf_accessor* accessor) {
-    void* result;
-
-    if ((result = malloc(accessor->buffer_view->size)) != NULL) {
-        if (accessor->component_type == cgltf_component_type_r_8) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), int8_t, (int8_t*)result);
-        }
-        else if (accessor->component_type == cgltf_component_type_r_8u) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), uint8_t, (uint8_t*)result);
-        }
-        else if (accessor->component_type == cgltf_component_type_r_16) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), int16_t, (int16_t*)result);
-        }
-        else if (accessor->component_type == cgltf_component_type_r_16u) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), uint16_t, (uint16_t*)result);
-        }
-        else if (accessor->component_type == cgltf_component_type_r_32u) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), uint32_t, (uint32_t*)result);
-        }
-        else if (accessor->component_type == cgltf_component_type_r_32f) {
-            GRAPHICS_CGLTF_ACCESSOR_PARSE(accessor, graphics_cgltf_type_to_count(accessor->type), float, (float*)result);
-        }
-    }
-
-    return result;
-}
-
-#endif // cgltf
-
-////////////////////////////////////////
-// Sandbox
-////////////////////////////////////////
 #include <libavutil/imgutils.h>
 #include <libavutil/random_seed.h>
 #include <libavutil/time.h>
 
-#if 1
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#if 1 /* XML - Random 18+ video/image */
 
 htmlDocPtr xml_get_url_data(const char* url, long timeout_ms) {
     void* url_data;
@@ -647,7 +625,7 @@ htmlDocPtr xml_get_url_data(const char* url, long timeout_ms) {
 }
 
 
-void rule34_xxx_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count) {
+void xml_rule34_xxx_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count) {
     htmlDocPtr document;
     xmlNode* node;
     xmlChar* buffer;
@@ -739,7 +717,7 @@ void rule34_xxx_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count)
 
     if ((document = xml_get_url_data(url, 20000)) != NULL) {
         if ((node = xml_find(xmlDocGetRootElement(document), "a", "alt", "last page", NULL)) != NULL) {
-            if ((buffer = xmlGetProp(node, "href")) != NULL) { // Do not forget to free up memory after xmlGetProp.
+            if ((buffer = xmlGetProp(node, "href")) != NULL) { /* Do not forget to free up memory after xmlGetProp. */
                 if ((pid_string = strrchr(buffer, '=')) != NULL) {
                     ++pid_string;
                     out_pid_count[0] = atoi(pid_string);
@@ -770,7 +748,7 @@ void rule34_xxx_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count)
     }
 }
 
-void rule34_xxx_get_source_url(const char* url_to_list, int pid, char** out_url) {
+void xml_rule34_xxx_get_source_url(const char* url_to_list, int pid, char** out_url) {
     htmlDocPtr document;
     xmlNode* node;
     xmlChar* buffer;
@@ -782,7 +760,7 @@ void rule34_xxx_get_source_url(const char* url_to_list, int pid, char** out_url)
         if ((node = xml_find(xmlDocGetRootElement(document), "div", "class", "image-list", NULL)) != NULL) {
             if ((node = xml_find(node, "span", "class", "thumb", NULL)) != NULL) {
                 if ((node = xml_find(node, "a", "href", NULL, NULL)) != NULL) {
-                    if ((buffer = xmlGetProp(node, "href")) != NULL) { // Do not forget to free up memory after xmlGetProp.
+                    if ((buffer = xmlGetProp(node, "href")) != NULL) { /* Do not forget to free up memory after xmlGetProp. */
                         snprintf(url, sizeof(url), "%s%s", "https://rule34.xxx", buffer);
 
                         xmlFreeDoc(document);
@@ -790,7 +768,7 @@ void rule34_xxx_get_source_url(const char* url_to_list, int pid, char** out_url)
                         if ((document = xml_get_url_data(url, 20000)) != NULL) {
                             if ((node = xml_find(xmlDocGetRootElement(document), "li", NULL, NULL, "Original image")) != NULL) {
                                 if ((node = xml_find(node, "a", "href", NULL, NULL)) != NULL) {
-                                    out_url[0] = xmlGetProp(node, "href"); // Do not forget to free up memory after xmlGetProp.
+                                    out_url[0] = xmlGetProp(node, "href"); /* Do not forget to free up memory after xmlGetProp. */
                                 }
                             }
                         }
@@ -810,20 +788,17 @@ void rule34_xxx_get_source_url(const char* url_to_list, int pid, char** out_url)
         if ((document = xml_get_url_data("https://rule34.xxx/index.php?page=post&s=random", 20000)) != NULL) {
             if ((node = xml_find(xmlDocGetRootElement(document), "li", NULL, NULL, "Original image")) != NULL) {
                 if ((node = xml_find(node, "a", "href", NULL, NULL)) != NULL) {
-                    out_url[0] = xmlGetProp(node, "href"); // Do not forget to free up memory after xmlGetProp.
+                    out_url[0] = xmlGetProp(node, "href"); /* Do not forget to free up memory after xmlGetProp. */
                 }
             }
 
             xmlFreeDoc(document);
         }
     }
-
-    // "https://nymp4.rule34.xxx//images/5059/1e105ca5ce2b91ff3ca5567086e61cb8.mp4?5766724";
-    // "https://ws-cdn-video.rule34.xxx//images/3750/6750dc9929dda34dbbe904adf191366c.mp4?4243094";
 }
 
 
-void realbooru_com_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count) {
+void xml_realbooru_com_get_base_url_and_pid(char** out_url_to_list, int* out_pid_count) {
     htmlDocPtr document;
     xmlNode* node;
     xmlChar* buffer;
@@ -849,7 +824,7 @@ void realbooru_com_get_base_url_and_pid(char** out_url_to_list, int* out_pid_cou
 
     if ((document = xml_get_url_data(url, 20000)) != NULL) {
         if ((node = xml_find(xmlDocGetRootElement(document), "a", "alt", "last page", NULL)) != NULL) {
-            if ((buffer = xmlGetProp(node, "href")) != NULL) { // Do not forget to free up memory after xmlGetProp.
+            if ((buffer = xmlGetProp(node, "href")) != NULL) { /* Do not forget to free up memory after xmlGetProp. */
                 if ((pid_string = strrchr(buffer, '=')) != NULL) {
                     ++pid_string;
                     out_pid_count[0] = atoi(pid_string);
@@ -880,7 +855,7 @@ void realbooru_com_get_base_url_and_pid(char** out_url_to_list, int* out_pid_cou
     }
 }
 
-void realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_url) {
+void xml_realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_url) {
     htmlDocPtr document;
     xmlNode* node;
     xmlChar* buffer;
@@ -892,7 +867,7 @@ void realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_u
         if ((node = xml_find(xmlDocGetRootElement(document), "div", "class", "items", NULL)) != NULL) {
             if ((node = xml_find(node, "div", "class", "col thumb", NULL)) != NULL) {
                 if ((node = xml_find(node, "a", "href", NULL, NULL)) != NULL) {
-                    if ((buffer = xmlGetProp(node, "href")) != NULL) { // Do not forget to free up memory after xmlGetProp.
+                    if ((buffer = xmlGetProp(node, "href")) != NULL) { /* Do not forget to free up memory after xmlGetProp. */
                         snprintf(url, sizeof(url), "%s", buffer);
 
                         xmlFreeDoc(document);
@@ -900,12 +875,12 @@ void realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_u
                         if ((document = xml_get_url_data(url, 20000)) != NULL) {
                             if ((node = xml_find(xmlDocGetRootElement(document), "video", "id", "gelcomVideoPlayer", NULL)) != NULL) {
                                 if ((node = xml_find(node, "source", "src", NULL, NULL)) != NULL) {
-                                    out_url[0] = xmlGetProp(node, "src"); // Do not forget to free up memory after xmlGetProp.
+                                    out_url[0] = xmlGetProp(node, "src"); /* Do not forget to free up memory after xmlGetProp. */
                                 }
                             }
                             else if ((node = xml_find(xmlDocGetRootElement(document), "div", "class", "imageContainer", NULL)) != NULL) {
                                 if ((node = xml_find(node, "img", "id", "image", NULL)) != NULL) {
-                                    out_url[0] = xmlGetProp(node, "src"); // Do not forget to free up memory after xmlGetProp.
+                                    out_url[0] = xmlGetProp(node, "src"); /* Do not forget to free up memory after xmlGetProp. */
                                 }
                             }
                         }
@@ -925,7 +900,7 @@ void realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_u
         if ((document = xml_get_url_data("https://realbooru.com/index.php?page=post&s=random", 20000)) != NULL) {
             if ((node = xml_find(xmlDocGetRootElement(document), "li", NULL, NULL, "Original image")) != NULL) {
                 if ((node = xml_find(node, "a", "href", NULL, NULL)) != NULL) {
-                    out_url[0] = xmlGetProp(node, "href"); // Do not forget to free up memory after xmlGetProp.
+                    out_url[0] = xmlGetProp(node, "href"); /* Do not forget to free up memory after xmlGetProp. */
                 }
             }
 
@@ -934,315 +909,177 @@ void realbooru_com_get_source_url(const char* url_to_list, int pid, char** out_u
     }
 }
 
-#endif
+#endif /* XML - Random 18+ video/image */
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#if 1 /* cgltf to OpenGL */
 
-#include <pthread.h>
+#define CGLTF_IMPLEMENTATION
+#include <cgltf/cgltf.h>
 
-#if 1
-
-typedef struct video_data {
-    AVFormatContext* format_context;
-    const char* url;
-    int stream_index;
-    AVCodecContext* codec_context;
-    struct SwsContext* sws_context;
-    AVPacket* packet;
-    AVFrame* frame;
-    int result;
-    AVDictionary* options;
-    uint8_t* pixels[4];
-    int pitch[4];
-    int run;
-    int update_texture;
-} video_data_t;
-
-typedef struct audio_data {
-    AVFormatContext* format_context;
-    const char* url;
-    int stream_index;
-    AVCodecContext* codec_context;
-    struct SwrContext* swr_context;
-    AVPacket* packet;
-    AVFrame* frame;
-    int result;
-    AVDictionary* options;
-    float gain;
-    int run;
-} audio_data_t;
-
-void* ffmpeg_video_thread(void* arg) {
-    video_data_t* video_data = arg;
-
-    if ((video_data->result = ffmpeg_format_context_alloc(&video_data->format_context, video_data->url, AVMEDIA_TYPE_VIDEO, &video_data->stream_index)) == 0) {
-        if ((video_data->result = ffmpeg_codec_context_alloc(&video_data->codec_context, video_data->format_context->streams[video_data->stream_index]->codecpar, video_data->options)) == 0) {
-            if ((video_data->result = ffmpeg_video_context_alloc(&video_data->sws_context, video_data->codec_context, AV_PIX_FMT_RGBA)) == 0) {
-                if ((video_data->packet = av_packet_alloc()) != NULL) {
-                    if ((video_data->frame = av_frame_alloc()) != NULL) {
-                        if ((video_data->pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, video_data->codec_context->width, video_data->codec_context->height, 1))) != NULL) {
-                            video_data->pitch[0] = video_data->codec_context->width * 4;
-
-                            if ((video_data->result = ffmpeg_get_next_frame(video_data->format_context, video_data->packet, video_data->stream_index, video_data->codec_context, video_data->frame)) == 0) {
-                                if ((video_data->result = sws_scale(video_data->sws_context, video_data->frame->data, video_data->frame->linesize, 0, video_data->codec_context->height, video_data->pixels, video_data->pitch)) >= 0) {
-                                    video_data->result = 0;
-
-                                    int64_t time_start;
-                                    int64_t time_now;
-
-                                    time_start = av_gettime_relative();
-                                    video_data->run = 1;
-
-                                    while (video_data->run == 1) {
-                                        if (video_data->update_texture == 0) {
-                                            time_now = av_gettime_relative();
-
-                                            if (video_data->result == AVERROR_EOF) {
-                                                video_data->result = ffmpeg_seek(&video_data->run, video_data->format_context, 0.0, video_data->packet, video_data->stream_index, video_data->codec_context, video_data->frame);
-                                                time_start = av_gettime_relative();
-                                            }
-
-                                            int count = 0;
-
-                                            while (video_data->result == 0 && av_q2d(video_data->format_context->streams[video_data->stream_index]->time_base) * video_data->frame->pts < ((double)(time_now - time_start) / AV_TIME_BASE) && ++count < 10) {
-                                                video_data->result = ffmpeg_get_next_frame(video_data->format_context, video_data->packet, video_data->stream_index, video_data->codec_context, video_data->frame);
-                                            }
-
-                                            if (video_data->result == 0 && (video_data->result = sws_scale(video_data->sws_context, video_data->frame->data, video_data->frame->linesize, 0, video_data->codec_context->height, video_data->pixels, video_data->pitch)) >= 0) {
-                                                video_data->result = 0;
-                                                video_data->update_texture = 1;
-                                            }
-                                        }
-
-                                        av_usleep(10000);
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            video_data->result = AVERROR(ENOMEM);
-                        }
-                    }
-                    else {
-                        video_data->result = AVERROR(ENOMEM);
-                    }
-                }
-                else {
-                    video_data->result = AVERROR(ENOMEM);
-                }
-            }
-        }
-    }
-
-    if (video_data->result != 0) {
-        PRINT_TEXT(av_err2str(video_data->result));
-    }
-
-    return NULL;
+#define CGLTF_ACCESSOR_PARSE(accessor, data_type, out_data) { \
+    data_type* buffer = (data_type*)accessor->buffer_view->buffer->data + accessor->buffer_view->offset / sizeof(data_type) + accessor->offset / sizeof(data_type); \
+    cgltf_size num_components = cgltf_num_components(accessor->type); \
+    cgltf_size stride = 0; \
+    for (cgltf_size i = 0; i < accessor->count; ++i) { \
+        for (cgltf_size j = 0; j < num_components; ++j) { \
+            ((data_type*)out_data)[num_components * i + j] = buffer[stride + j]; \
+        } \
+        stride += accessor->stride / sizeof(data_type); \
+    } \
 }
 
-int pa_stream_callback(const void* input, void* output, unsigned long frame_count, const PaStreamCallbackTimeInfo* time_info, PaStreamCallbackFlags status_flags, void* user_data) {
-    audio_data_t* audio_data = user_data;
+void* cgltf_accessor_alloc_and_parse_data(const cgltf_accessor* accessor) {
+    void* result;
 
-    if ((audio_data->result = ffmpeg_get_next_frame(audio_data->format_context, audio_data->packet, audio_data->stream_index, audio_data->codec_context, audio_data->frame)) == 0) {
-        if ((audio_data->result = swr_convert(audio_data->swr_context, &output, audio_data->frame->nb_samples, audio_data->frame->data, audio_data->frame->nb_samples)) >= 0) {
-            for (size_t i = 0; i < audio_data->codec_context->frame_size * audio_data->codec_context->ch_layout.nb_channels; ++i) {
-                ((int16_t*)output)[i] *= audio_data->gain;
-            }
-
-            audio_data->result = 0;
+    if ((result = malloc(accessor->buffer_view->size)) != NULL) {
+        if (accessor->component_type == cgltf_component_type_r_8) {
+            CGLTF_ACCESSOR_PARSE(accessor, int8_t, result);
         }
-    }
-
-    if (audio_data->result == AVERROR_EOF) {
-        audio_data->result = ffmpeg_seek(&audio_data->run, audio_data->format_context, 0.0, audio_data->packet, audio_data->stream_index, audio_data->codec_context, audio_data->frame);
-    }
-
-    return paContinue;
-}
-
-void* ffmpeg_audio_thread(void* arg) {
-    audio_data_t* audio_data = arg;
-
-    if ((audio_data->result = ffmpeg_format_context_alloc(&audio_data->format_context, audio_data->url, AVMEDIA_TYPE_AUDIO, &audio_data->stream_index)) == 0) {
-        if ((audio_data->result = ffmpeg_codec_context_alloc(&audio_data->codec_context, audio_data->format_context->streams[audio_data->stream_index]->codecpar, audio_data->options)) == 0) {
-            if ((audio_data->result = ffmpeg_audio_context_alloc(&audio_data->swr_context, audio_data->codec_context, AV_SAMPLE_FMT_S16)) == 0) {
-                if ((audio_data->packet = av_packet_alloc()) != NULL) {
-                    if ((audio_data->frame = av_frame_alloc()) != NULL) {
-                        PaError error;
-
-                        if ((error = Pa_Initialize()) == paNoError) {
-                            PaStream* stream;
-
-                            if ((error = Pa_OpenDefaultStream(&stream, 0, audio_data->codec_context->ch_layout.nb_channels, paInt16, audio_data->codec_context->sample_rate, audio_data->codec_context->frame_size, pa_stream_callback, audio_data)) == paNoError) {
-                                if ((error = Pa_StartStream(stream)) == paNoError) {
-                                    // while ((error = Pa_IsStreamActive(stream)) == 1) {
-                                    //     Pa_Sleep(10);
-                                    // }
-
-                                    audio_data->run = 1;
-
-                                    while (audio_data->run == 1) {
-                                        av_usleep(10000);
-                                    }
-
-                                    if ((error = Pa_StopStream(stream)) != paNoError) {
-                                        PRINT_TEXT(Pa_GetErrorText(error));
-                                    }
-                                }
-
-                                if ((error = Pa_CloseStream(stream)) != paNoError) {
-                                    PRINT_TEXT(Pa_GetErrorText(error));
-                                }
-                            }
-                            else {
-                                PRINT_TEXT(Pa_GetErrorText(error));
-                            }
-
-                            if ((error = Pa_Terminate()) != paNoError) {
-                                PRINT_TEXT(Pa_GetErrorText(error));
-                            }
-                        }
-
-                        if (error != paNoError) {
-                            PRINT_TEXT(Pa_GetErrorText(error));
-                        }
-                    }
-                    else {
-                        audio_data->result = AVERROR(ENOMEM);
-                    }
-                }
-                else {
-                    audio_data->result = AVERROR(ENOMEM);
-                }
-            }
+        else if (accessor->component_type == cgltf_component_type_r_8u) {
+            CGLTF_ACCESSOR_PARSE(accessor, uint8_t, result);
         }
-    }
-
-    if (audio_data->result != 0) {
-        PRINT_TEXT(av_err2str(audio_data->result));
-    }
-
-    return NULL;
-}
-
-#endif
-
-#if 1
-
-int ffmpeg_image_load(const char* url, uint8_t** out_pixels, int* out_width, int* out_height) {
-    AVFormatContext* format_context = NULL;
-    AVCodecContext* codec_context = NULL;
-    struct SwsContext* sws_context = NULL;
-    AVPacket* packet;
-    AVFrame* frame;
-    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
-    int pitch[4] = { 0, 0, 0, 0 };
-    int stream_index;
-    int result;
-
-    if ((result = ffmpeg_format_context_alloc(&format_context, url, AVMEDIA_TYPE_VIDEO, &stream_index)) == 0) {
-        if ((result = ffmpeg_codec_context_alloc(&codec_context, format_context->streams[stream_index]->codecpar, NULL)) == 0) {
-            if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
-                if ((packet = av_packet_alloc()) != NULL) {
-                    if ((frame = av_frame_alloc()) != NULL) {
-                        if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
-                            pitch[0] = codec_context->width * 4;
-
-                            if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
-                                if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
-                                    result = 0;
-
-                                    out_pixels[0] = pixels[0];
-                                    out_width[0] = frame->width;
-                                    out_height[0] = frame->height;
-                                }
-                            }
-                        }
-                        else {
-                            result = AVERROR(ENOMEM);
-                        }
-
-                        av_frame_free(&frame);
-                    }
-                    else {
-                        result = AVERROR(ENOMEM);
-                    }
-
-                    av_packet_free(&packet);
-                }
-                else {
-                    result = AVERROR(ENOMEM);
-                }
-
-                sws_freeContext(sws_context);
-            }
-
-            avcodec_free_context(&codec_context);
+        else if (accessor->component_type == cgltf_component_type_r_16) {
+            CGLTF_ACCESSOR_PARSE(accessor, int16_t, result);
         }
-
-        avformat_close_input(&format_context);
+        else if (accessor->component_type == cgltf_component_type_r_16u) {
+            CGLTF_ACCESSOR_PARSE(accessor, uint16_t, result);
+        }
+        else if (accessor->component_type == cgltf_component_type_r_32u) {
+            CGLTF_ACCESSOR_PARSE(accessor, uint32_t, result);
+        }
+        else if (accessor->component_type == cgltf_component_type_r_32f) {
+            CGLTF_ACCESSOR_PARSE(accessor, float, result);
+        }
     }
 
     return result;
 }
 
-int ffmpeg_image_from_memory(void* data, size_t size, uint8_t** out_pixels, int* out_width, int* out_height) {
-    AVFormatContext* format_context = NULL;
-    AVCodecContext* codec_context = NULL;
-    struct SwsContext* sws_context = NULL;
-    AVPacket* packet;
-    AVFrame* frame;
-    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
-    int pitch[4] = { 0, 0, 0, 0 };
-    int stream_index;
-    int result;
 
-    if ((result = ffmpeg_from_memory_alloc(&format_context, data, size, AVMEDIA_TYPE_VIDEO, &stream_index, &codec_context, NULL)) == 0) {
-        if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
-            if ((packet = av_packet_alloc()) != NULL) {
-                if ((frame = av_frame_alloc()) != NULL) {
-                    if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
-                        pitch[0] = codec_context->width * 4;
+typedef struct transform {
+    vec3 position;
+    vec3 rotation;
+    vec3 scale;
+} transform_t;
 
-                        if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
-                            if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
-                                result = 0;
-
-                                out_pixels[0] = pixels[0];
-                                out_width[0] = frame->width;
-                                out_height[0] = frame->height;
-                            }
-                        }
-                    }
-                    else {
-                        result = AVERROR(ENOMEM);
-                    }
-
-                    av_frame_free(&frame);
-                }
-                else {
-                    result = AVERROR(ENOMEM);
-                }
-
-                av_packet_free(&packet);
-            }
-            else {
-                result = AVERROR(ENOMEM);
-            }
-
-            sws_freeContext(sws_context);
-        }
-
-        avcodec_free_context(&codec_context);
-        avformat_close_input(&format_context);
-    }
-
-    return result;
+void transform_initialize(transform_t* transform) {
+    glm_vec3_zero(transform->position);
+    glm_vec3_zero(transform->rotation);
+    glm_vec3_one(transform->scale);
 }
 
-int ffmpeg_cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_folder, uint8_t** out_pixels, int* out_width, int* out_height) {
+typedef struct culling {
+    vec3 box[2];
+} culling_t;
+
+void culling_initialize(culling_t* culling) {
+    culling->box[0][0] = culling->box[0][1] = culling->box[0][2] = FLT_MAX;
+    culling->box[1][0] = culling->box[1][1] = culling->box[1][2] = -FLT_MAX;
+}
+
+void culling_set_from_data(const float* data, size_t count, culling_t* culling) {
+    for (size_t i = 0; i < count; i += 3) {
+        if (culling->box[0][0] > data[i]) {
+            culling->box[0][0] = data[i];
+        }
+        if (culling->box[0][1] > data[i + 1]) {
+            culling->box[0][1] = data[i + 1];
+        }
+        if (culling->box[0][2] > data[i + 2]) {
+            culling->box[0][2] = data[i + 2];
+        }
+
+        if (culling->box[1][0] < data[i]) {
+            culling->box[1][0] = data[i];
+        }
+        if (culling->box[1][1] < data[i + 1]) {
+            culling->box[1][1] = data[i + 1];
+        }
+        if (culling->box[1][2] < data[i + 2]) {
+            culling->box[1][2] = data[i + 2];
+        }
+    }
+}
+
+typedef struct ogl_material {
+    char* name;
+    GLuint program;
+    GLuint texture;
+} ogl_material_t;
+
+void ogl_material_initialize(ogl_material_t* material) {
+    material->name = NULL;
+    material->program = 0;
+    material->texture = 0;
+}
+
+typedef struct ogl_primitive {
+    ogl_material_t* material;
+    transform_t transform;
+    culling_t culling;
+    GLuint vertex_array_object;
+    GLuint element_buffer_object;
+    GLsizei count;
+    GLenum type;
+} ogl_primitive_t;
+
+void ogl_primitive_initialize(ogl_primitive_t* primitive) {
+    primitive->material = NULL;
+    transform_initialize(&primitive->transform);
+    culling_initialize(&primitive->culling);
+    primitive->vertex_array_object = 0;
+    primitive->element_buffer_object = 0;
+    primitive->count = 0;
+    primitive->type = 0;
+}
+
+typedef struct ogl_mesh {
+    char* name;
+    ogl_primitive_t* primitives;
+    GLuint primitives_count;
+} ogl_mesh_t;
+
+void ogl_mesh_initialize(ogl_mesh_t* mesh) {
+    mesh->name = NULL;
+    mesh->primitives = NULL;
+    mesh->primitives_count = 0;
+}
+
+typedef struct ogl_node ogl_node_t;
+typedef struct ogl_node {
+    char* name;
+    ogl_node_t* children;
+    ogl_mesh_t* mesh;
+    transform_t transform;
+    GLuint children_count;
+    mat4 matrix;
+} ogl_node_t;
+
+void ogl_node_initialize(ogl_node_t* node) {
+    node->name = NULL;
+    node->children = NULL;
+    node->mesh = NULL;
+    transform_initialize(&node->transform);
+    node->children_count = 0;
+    glm_mat4_identity(node->matrix);
+}
+
+typedef struct ogl_scene {
+    ogl_material_t* materials;
+    ogl_node_t* nodes;
+    GLuint materials_count;
+    GLuint nodes_count;
+} ogl_scene_t;
+
+void ogl_scene_initialize(ogl_scene_t* scene) {
+    scene->materials = NULL;
+    scene->nodes = NULL;
+    scene->materials_count = 0;
+    scene->nodes_count = 0;
+}
+
+
+int cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_folder, uint8_t** out_pixels, int* out_width, int* out_height) {
     int result;
 
     if (image->uri != NULL) {
@@ -1276,26 +1113,27 @@ int ffmpeg_cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_
                 };
 
                 if (cgltf_load_buffer_base64(&options, size, base64, &data) == cgltf_result_success) {
-                    result = ffmpeg_image_from_memory(data, image->buffer_view->size, out_pixels, out_width, out_height);
+                    result = ffmpeg_image_load_from_memory(data, image->buffer_view->size, out_pixels, out_width, out_height);
                 }
             }
         }
         else {
             if (path_to_gltf_folder == NULL) {
                 puts("path_to_gltf_folder is NULL!");
-                return -1;
+                return AVERROR(ENOMEM);
             }
 
-            size_t path_to_gltf_folder_length = strlen(path_to_gltf_folder);
-            size_t image_uri_length = strlen(image->uri);
-            char image_path[path_to_gltf_folder_length + image_uri_length + 1];
+            char* image_path;
 
-            memcpy(image_path, path_to_gltf_folder, path_to_gltf_folder_length);
-            memcpy(image_path + path_to_gltf_folder_length, image->uri, image_uri_length);
-
-            image_path[path_to_gltf_folder_length + image_uri_length] = '\0';
-
-            result = ffmpeg_image_load(image_path, out_pixels, out_width, out_height);
+            if ((image_path = malloc(strlen(path_to_gltf_folder) + strlen(image->uri) + 1)) != NULL) {
+                strcpy(image_path, path_to_gltf_folder);
+                strcat(image_path, image->uri);
+                result = ffmpeg_image_load_from_url(image_path, out_pixels, out_width, out_height);
+                free(image_path);
+            }
+            else {
+                result = AVERROR(ENOMEM);
+            }
         }
     }
     else if (image->buffer_view->buffer->data != NULL) {
@@ -1310,7 +1148,7 @@ int ffmpeg_cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_
                 offset += stride;
             }
 
-            result = ffmpeg_image_from_memory(data, image->buffer_view->size, out_pixels, out_width, out_height);
+            result = ffmpeg_image_load_from_memory(data, image->buffer_view->size, out_pixels, out_width, out_height);
             free(data);
         }
         else {
@@ -1320,80 +1158,6 @@ int ffmpeg_cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_
 
     return result;
 }
-
-
-typedef struct ogl_material {
-    GLuint program;
-    GLuint texture;
-} ogl_material_t;
-
-void ogl_material_init(ogl_material_t* material) {
-    material->program = 0;
-    material->texture = 0;
-}
-
-typedef struct ogl_primitive {
-    GLuint vertex_array_object;
-    GLuint element_buffer_object;
-    GLsizei count;
-    GLenum type;
-    ogl_material_t* material;
-    vec3 box[2];
-} ogl_primitive_t;
-
-void ogl_primitive_init(ogl_primitive_t* primitive) {
-    primitive->vertex_array_object = 0;
-    primitive->element_buffer_object = 0;
-    primitive->count = 0;
-    primitive->type = GL_UNSIGNED_INT;
-    primitive->material = NULL;
-
-    glm_vec3_copy((vec3) { 3.402823466e+38f, 3.402823466e+38f, 3.402823466e+38f }, primitive->box[0]);
-    glm_vec3_copy((vec3) { -3.402823466e+38f, -3.402823466e+38f, -3.402823466e+38f }, primitive->box[1]);
-}
-
-typedef struct ogl_mesh {
-    ogl_primitive_t* primitives;
-    GLuint primitives_count;
-} ogl_mesh_t;
-
-void ogl_mesh_init(ogl_mesh_t* mesh) {
-    mesh->primitives = NULL;
-    mesh->primitives_count = 0;
-}
-
-typedef struct ogl_node ogl_node_t;
-typedef struct ogl_node {
-    ogl_node_t* children;
-    ogl_mesh_t* mesh;
-    GLuint children_count;
-	GLfloat translation[3];
-	GLfloat rotation[4];
-	GLfloat scale[3];
-	GLfloat matrix[16];
-} ogl_node_t;
-
-void ogl_node_init(ogl_node_t* node) {
-    node->children = NULL;
-    node->mesh = NULL;
-    node->children_count = 0;
-
-    glm_vec3_copy(GLM_VEC3_ZERO, node->translation);
-    glm_vec4_copy(GLM_VEC4_ZERO, node->rotation);
-    glm_vec3_copy(GLM_VEC3_ONE, node->scale);
-    glm_mat4_identity(node->matrix);
-}
-
-typedef struct ogl_scene {
-    ogl_node_t* nodes;
-    GLuint nodes_count;
-} ogl_scene_t;
-
-void ogl_scene_init(ogl_scene_t* scene) {
-    scene->nodes = NULL;
-    scene->nodes_count = 0;
-}
-
 
 void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_material) {
     // puts("============================================================");
@@ -1440,10 +1204,10 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
 
             "out vec4 FragmentColor;\n"
 
-            "uniform sampler2D texture1;\n"
+            "uniform sampler2D texture0;\n"
 
             "void main() {\n"
-            "    FragmentColor = texture(texture1, TextureCoordinates);\n"
+            "    FragmentColor = texture(texture0, TextureCoordinates);\n"
             "}\n"
         ;
 
@@ -1466,7 +1230,7 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
                 int height;
                 int result;
 
-                if ((result = ffmpeg_cgltf_image_parse(material->pbr_metallic_roughness.base_color_texture.texture->image, NULL, &pixels, &width, &height)) == 0) {
+                if ((result = cgltf_image_parse(material->pbr_metallic_roughness.base_color_texture.texture->image, NULL, &pixels, &width, &height)) == 0) {
                     ogl_material->texture = ogl_texture_create(width, height, GL_RGBA, pixels);
                     av_freep(&pixels);
                 }
@@ -1480,7 +1244,7 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
     // if (material->has_pbr_specular_glossiness) {
     //     if (material->pbr_specular_glossiness.diffuse_texture.texture) {
     //         if (material->pbr_specular_glossiness.diffuse_texture.texture->image) {
-    //             ffmpeg_cgltf_image_parse(material->pbr_specular_glossiness.diffuse_texture.texture->image, NULL, &pixels, &width, &height);
+    //             cgltf_image_parse(material->pbr_specular_glossiness.diffuse_texture.texture->image, NULL, &pixels, &width, &height);
     //         }
     //     }
     //     else {
@@ -1491,39 +1255,15 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
     // if (material->has_specular) {
     //     if (material->specular.specular_texture.texture) {
     //         if (material->specular.specular_texture.texture->image) {
-    //             ffmpeg_cgltf_image_parse(material->specular.specular_texture.texture->image, NULL, &pixels, &width, &height);
+    //             cgltf_image_parse(material->specular.specular_texture.texture->image, NULL, &pixels, &width, &height);
     //         }
     //     }
     //     if (material->specular.specular_color_texture.texture) {
     //         if (material->specular.specular_color_texture.texture->image) {
-    //             ffmpeg_cgltf_image_parse(material->specular.specular_color_texture.texture->image, NULL, &pixels, &width, &height);
+    //             cgltf_image_parse(material->specular.specular_color_texture.texture->image, NULL, &pixels, &width, &height);
     //         }
     //     }
     // }
-}
-
-void cglm_set_box(const void* data, size_t count, vec3 out_box[2]) {
-    for (size_t i = 0; i < count; i += 3) {
-        if (out_box[0][0] > ((float*)data)[i]) {
-            out_box[0][0] = ((float*)data)[i];
-        }
-        if (out_box[0][1] > ((float*)data)[i + 1]) {
-            out_box[0][1] = ((float*)data)[i + 1];
-        }
-        if (out_box[0][2] > ((float*)data)[i + 2]) {
-            out_box[0][2] = ((float*)data)[i + 2];
-        }
-
-        if (out_box[1][0] < ((float*)data)[i]) {
-            out_box[1][0] = ((float*)data)[i];
-        }
-        if (out_box[1][1] < ((float*)data)[i + 1]) {
-            out_box[1][1] = ((float*)data)[i + 1];
-        }
-        if (out_box[1][2] < ((float*)data)[i + 2]) {
-            out_box[1][2] = ((float*)data)[i + 2];
-        }
-    }
 }
 
 void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_primitive) {
@@ -1532,7 +1272,7 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
     if (primitive->indices != NULL) {
         void* accessor_data;
 
-        if ((accessor_data = graphics_cgltf_alloc_and_parse_accessor_data(primitive->indices)) != NULL) {
+        if ((accessor_data = cgltf_accessor_alloc_and_parse_data(primitive->indices)) != NULL) {
             glBindVertexArray(out_primitive->vertex_array_object);
             out_primitive->element_buffer_object = ogl_buffer_create(GL_ELEMENT_ARRAY_BUFFER, primitive->indices->buffer_view->size, accessor_data);
             glBindVertexArray(0);
@@ -1541,9 +1281,16 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
         }
 
         out_primitive->count = primitive->indices->count;
-        out_primitive->type =
-            primitive->indices->component_type == cgltf_component_type_r_8u ? GL_UNSIGNED_BYTE :
-            primitive->indices->component_type == cgltf_component_type_r_16u ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+
+        if (primitive->indices->component_type == cgltf_component_type_r_8u) {
+            out_primitive->type = GL_UNSIGNED_BYTE;
+        }
+        else if (primitive->indices->component_type == cgltf_component_type_r_16u) {
+            out_primitive->type = GL_UNSIGNED_SHORT;
+        }
+        else {
+            out_primitive->type = GL_UNSIGNED_INT;
+        }
     }
 
     for (cgltf_size i = 0; i < primitive->attributes_count; ++i) {
@@ -1552,12 +1299,16 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
 
         glBindVertexArray(out_primitive->vertex_array_object);
 
-        if ((accessor_data = graphics_cgltf_alloc_and_parse_accessor_data(primitive->attributes[i].data)) != NULL) {
+        if ((accessor_data = cgltf_accessor_alloc_and_parse_data(primitive->attributes[i].data)) != NULL) {
             if (primitive->attributes[i].type == cgltf_attribute_type_position) {
                 vertex_buffer_object = ogl_buffer_create(GL_ARRAY_BUFFER, primitive->attributes[i].data->buffer_view->size, accessor_data);
                 ogl_buffer_attribute(GL_ARRAY_BUFFER, vertex_buffer_object, 0, 3);
 
-                cglm_set_box(accessor_data, primitive->attributes[i].data->buffer_view->size / sizeof(float), out_primitive->box);
+                if (primitive->indices == NULL) {
+                    out_primitive->count = primitive->attributes[i].data->count;
+                }
+
+                culling_set_from_data(accessor_data, primitive->attributes[i].data->buffer_view->size / sizeof(float), &out_primitive->culling);
             }
             else if (primitive->attributes[i].type == cgltf_attribute_type_normal) {
                 vertex_buffer_object = ogl_buffer_create(GL_ARRAY_BUFFER, primitive->attributes[i].data->buffer_view->size, accessor_data);
@@ -1618,7 +1369,7 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
 
     if (primitive->material != NULL) {
         if ((out_primitive->material = malloc(sizeof(ogl_material_t))) != NULL) {
-            ogl_material_init(out_primitive->material);
+            ogl_material_initialize(out_primitive->material);
             ogl_material_parse(primitive->material, out_primitive->material);
         }
     }
@@ -1629,30 +1380,31 @@ void ogl_mesh_parse(const cgltf_mesh* mesh, ogl_mesh_t* out_mesh) {
         out_mesh->primitives_count = mesh->primitives_count;
 
         for (cgltf_size i = 0; i < mesh->primitives_count; ++i) {
-            ogl_primitive_init(&out_mesh->primitives[i]);
+            ogl_primitive_initialize(&out_mesh->primitives[i]);
             ogl_primitive_parse(&mesh->primitives[i], &out_mesh->primitives[i]);
         }
     }
 }
 
 void ogl_node_parse(const cgltf_node* node, ogl_node_t* out_node) {
+    out_node->name = strdup(node->name);
+
     if (node->has_translation == 1) {
-        glm_vec3_copy(node->translation, out_node->translation);
+        glm_vec3_copy(node->translation, out_node->transform.position);
     }
     if (node->has_rotation == 1) {
-        glm_vec4_copy(node->rotation, out_node->rotation);
+        glm_vec3_copy(node->rotation, out_node->transform.rotation);
     }
     if (node->has_scale == 1) {
-        glm_vec3_copy(node->scale, out_node->scale);
+        glm_vec3_copy(node->scale, out_node->transform.scale);
     }
     if (node->has_matrix == 1) {
-        glm_mat4_copy(node->matrix, out_node->matrix);
         cgltf_node_transform_world(node, out_node->matrix);
     }
 
     if (node->mesh != NULL) {
         if ((out_node->mesh = malloc(sizeof(ogl_mesh_t))) != NULL) {
-            ogl_mesh_init(out_node->mesh);
+            ogl_mesh_initialize(out_node->mesh);
             ogl_mesh_parse(node->mesh, out_node->mesh);
         }
     }
@@ -1662,7 +1414,7 @@ void ogl_node_parse(const cgltf_node* node, ogl_node_t* out_node) {
             out_node->children_count = node->children_count;
 
             for (cgltf_size i = 0; i < node->children_count; ++i) {
-                ogl_node_init(&out_node->children[i]);
+                ogl_node_initialize(&out_node->children[i]);
                 ogl_node_parse(node->children[i], &out_node->children[i]);
             }
         }
@@ -1674,7 +1426,7 @@ void ogl_scene_parse(const cgltf_scene* scene, ogl_scene_t* out_scene) {
         out_scene->nodes_count = scene->nodes_count;
 
         for (cgltf_size i = 0; i < scene->nodes_count; ++i) {
-            ogl_node_init(&out_scene->nodes[i]);
+            ogl_node_initialize(&out_scene->nodes[i]);
             ogl_node_parse(scene->nodes[i], &out_scene->nodes[i]);
         }
     }
@@ -1734,14 +1486,37 @@ cgltf_result ogl_gltf_load(const char* url, ogl_scene_t* scene) {
     return result;
 }
 
-void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view) {
+void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view, vec4 planes[6]) {
     if (node->mesh != NULL) {
-        mat4 matrix;
-        glm_mat4_mul(projection, view, matrix);
+        /* mat4 matrix; */
 
         for (GLuint i = 0; i < node->mesh->primitives_count; ++i) {
-            if (cglm_frustum_culling(matrix, node->mesh->primitives[i].box) == false) {
-                printf("[%i]SKIP", i);
+            /*
+            glm_mat4_identity(matrix);
+            glm_translate(matrix, node->mesh->primitives[i].transform.position);
+            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[0], (vec3) { 1.0f, 0.0f, 0.0f });
+            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[1], (vec3) { 0.0f, 1.0f, 0.0f });
+            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[2], (vec3) { 0.0f, 0.0f, 1.0f });
+            glm_scale(matrix, node->mesh->primitives[i].transform.scale);
+            */
+
+            /* Frustum culling */
+            vec3 box[2];
+            glm_vec3_copy(node->mesh->primitives[i].culling.box[0], box[0]);
+            glm_vec3_copy(node->mesh->primitives[i].culling.box[1], box[1]);
+
+            box[0][0] += node->mesh->primitives[i].transform.position[0];
+            box[0][1] += node->mesh->primitives[i].transform.position[1];
+            box[0][2] += node->mesh->primitives[i].transform.position[2];
+
+            box[1][0] += node->mesh->primitives[i].transform.position[0];
+            box[1][1] += node->mesh->primitives[i].transform.position[1];
+            box[1][2] += node->mesh->primitives[i].transform.position[2];
+
+            /* TODO: rotate box for currect frustum collision */
+
+            if (glm_aabb_frustum(box, planes) == false) {
+                printf("%s skip\n", node->name);
                 continue;
             }
 
@@ -1753,37 +1528,84 @@ void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view) {
                     glUniformMatrix4fv(glGetUniformLocation(node->mesh->primitives[i].material->program, "model"), 1, GL_FALSE, node->matrix);
                 }
 
-                // glPointSize(8.0f); glBegin(GL_POINTS); for (int i = 0; i < sizeof(box) / sizeof(box[0]); ++i) { glVertex3fv(box[i]); } glEnd();
-                // glBegin(GL_LINES); for (int i = 0; i < sizeof(box) / sizeof(box[0]); ++i) { glVertex3fv(box[i]); } glEnd();
+
+                #define min_x node->mesh->primitives[i].culling.box[0][0]
+                #define min_y node->mesh->primitives[i].culling.box[0][1]
+                #define min_z node->mesh->primitives[i].culling.box[0][2]
+                #define max_x node->mesh->primitives[i].culling.box[1][0]
+                #define max_y node->mesh->primitives[i].culling.box[1][1]
+                #define max_z node->mesh->primitives[i].culling.box[1][2]
+
+
+                glPointSize(4.0f);
+                glBegin(GL_POINTS);
+                    // glVertex3fv(node->mesh->primitives[i].culling.box[0]);
+                    // glVertex3fv(node->mesh->primitives[i].culling.box[1]);
+                    glVertex3f(min_x, min_y, min_z);
+                    glVertex3f(min_x, max_y, min_z);
+                    glVertex3f(min_x, min_y, max_z);
+                    glVertex3f(min_x, max_y, max_z);
+
+                    glVertex3f(max_x, min_y, min_z);
+                    glVertex3f(max_x, max_y, min_z);
+                    glVertex3f(max_x, min_y, max_z);
+                    glVertex3f(max_x, max_y, max_z);
+                glEnd();
+                glBegin(GL_LINES);
+                    // glVertex3fv(node->mesh->primitives[i].culling.box[0]);
+                    // glVertex3fv(node->mesh->primitives[i].culling.box[1]);
+                    glVertex3f(min_x, min_y, min_z);
+                    glVertex3f(min_x, max_y, min_z);
+                    glVertex3f(min_x, min_y, max_z);
+                    glVertex3f(min_x, max_y, max_z);
+
+                    glVertex3f(max_x, min_y, min_z);
+                    glVertex3f(max_x, max_y, min_z);
+                    glVertex3f(max_x, min_y, max_z);
+                    glVertex3f(max_x, max_y, max_z);
+                glEnd();
+
 
                 if (node->mesh->primitives[i].material->texture != 0) {
                     glBindTexture(GL_TEXTURE_2D, node->mesh->primitives[i].material->texture);
                 }
+
+                glBindVertexArray(node->mesh->primitives[i].vertex_array_object);
+                    if (node->mesh->primitives[i].element_buffer_object > 0) {
+                        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, node->mesh->primitives[i].element_buffer_object);
+                            glDrawElements(GL_TRIANGLES, node->mesh->primitives[i].count, node->mesh->primitives[i].type, NULL);
+                        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                    }
+                    else {
+                        glDrawArrays(GL_TRIANGLES, 0, node->mesh->primitives[i].count);
+                    }
+                glBindVertexArray(0);
+
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glUseProgram(0);
             }
-
-            glBindVertexArray(node->mesh->primitives[i].vertex_array_object);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, node->mesh->primitives[i].element_buffer_object);
-                    glDrawElements(GL_TRIANGLES, node->mesh->primitives[i].count, node->mesh->primitives[i].type, NULL);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glUseProgram(0);
         }
     }
 
     for (GLuint i = 0; i < node->children_count; ++i) {
-        ogl_draw_node(&node->children[i], projection, view);
+        ogl_draw_node(&node->children[i], projection, view, planes);
     }
 }
 
 void ogl_scene_draw(const ogl_scene_t* scene, mat4 projection, mat4 view) {
+    /* For frustum culling */
+    mat4 projection_view;
+    vec4 planes[6];
+    glm_mat4_mul(projection, view, projection_view);
+    glm_frustum_planes(projection_view, planes);
+
     for (GLuint i = 0; i < scene->nodes_count; ++i) {
-        ogl_draw_node(&scene->nodes[i], projection, view);
+        ogl_draw_node(&scene->nodes[i], projection, view, planes);
     }
 }
 
-#endif
+#endif /* cgltf to OpenGL */
+
 
 void glfw_error_callback(int error_code, const char* description) {
     PRINT_TEXT(description);
@@ -1791,7 +1613,7 @@ void glfw_error_callback(int error_code, const char* description) {
 
 void glfw_framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
-    glm_perspective(GLM_PI_4f, (float)width / height, 0.01f, 3.402823466e+38f, glfwGetWindowUserPointer(window));
+    glm_perspective(GLM_PI_4f, (float)width / height, 0.01f, FLT_MAX, glfwGetWindowUserPointer(window));
 }
 
 
@@ -1821,10 +1643,9 @@ int main(int argc, char** argv) {
 
         if (window != NULL) {
             glfwMakeContextCurrent(window);
-
             glfwSetFramebufferSizeCallback(window, glfw_framebuffer_size_callback);
 
-            if (gladLoadGL(glfwGetProcAddress) != 0) {
+            if (gladLoadGL(glfwGetProcAddress) > 0) {
                 glDebugMessageCallback(ogl_debug_message_callback, NULL);
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
@@ -1843,10 +1664,10 @@ int main(int argc, char** argv) {
 
                 glfwGetWindowSize(window, &window_width, &window_height);
 
-                mat4 projection = GLM_MAT4_IDENTITY_INIT;
+                mat4 projection;
                 mat4 view = GLM_MAT4_IDENTITY_INIT;
                 {
-                    glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, 3.402823466e+38f, projection);
+                    glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, FLT_MAX, projection);
                     glfwSetWindowUserPointer(window, projection);
                 }
 
@@ -1855,7 +1676,7 @@ int main(int argc, char** argv) {
 
 
                 ogl_scene_t scene;
-                ogl_gltf_load("https://github.com/KhronosGroup/glTF-Sample-Models/raw/main/2.0/Corset/glTF-Binary/Corset.glb", &scene);
+                ogl_gltf_load("C:/Users/User/Downloads/Scene.glb", &scene);
 
 
                 while (glfwWindowShouldClose(window) == 0) {
@@ -1933,23 +1754,37 @@ int main(int argc, char** argv) {
 
                         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
                             glm_mat4_identity(view);
-                            glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, 3.402823466e+38f, projection);
+                            glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, FLT_MAX, projection);
                         }
                     }
                 #endif
 
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                        glm_translate(scene.nodes[0].matrix, (vec3) { -0.01f, 0.0f, 0.0f });
-                        scene.nodes[0].mesh->primitives[0].box[0][0] -= 0.01f;
-                        scene.nodes[0].mesh->primitives[0].box[1][0] -= 0.01f;
+                    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.rotation[1] -= 0.1f;
+                    }
+                    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.rotation[1] += 0.1f;
+                    }
+                    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.rotation[0] -= 0.1f;
+                    }
+                    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.rotation[0] += 0.1f;
                     }
 
+                    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.position[0] -= 0.1f;
+                    }
                     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                        glm_translate(scene.nodes[0].matrix, (vec3) { 0.01f, 0.0f, 0.0f });
-                        scene.nodes[0].mesh->primitives[0].box[0][0] += 0.01f;
-                        scene.nodes[0].mesh->primitives[0].box[1][0] += 0.01f;
+                        scene.nodes[0].mesh->primitives[0].transform.position[0] += 0.1f;
+                    }
+                    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.position[1] -= 0.1f;
+                    }
+                    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                        scene.nodes[0].mesh->primitives[0].transform.position[1] += 0.1f;
                     }
 
                     ogl_scene_draw(&scene, projection, view);
@@ -1970,179 +1805,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-#if 0
-
-void engine_print_log(engine_t* engine) {
-    printf(
-        "\033[H\033[J"
-        TEXT_COLOR_BLUE "%s\n"
-        TEXT_COLOR_RED "%*s%*s%*s%*s%*s%*s%*s\n"
-        TEXT_COLOR_NORMAL "%*.3f%*s%*.3f%*s%*.3f%*s%*.3f%*s%*.2f%*s%*i%*s%*i%*i%*s%*i\n"
-        TEXT_COLOR_CYAN "%s" TEXT_COLOR_RED "&pid=" TEXT_COLOR_NORMAL "%i\n",
-
-        // Source link
-        engine->url ? engine->url : "No source URL",
-
-        // Text
-        10 - 2, "Time",
-        10, "Video",
-        10, "Audio",
-        10, "Duration",
-        10, "Volume",
-        10, "Size",
-        15, "Index",
-
-        // Time
-        10 - 2, engine->time_run == 1 ? (double)(engine->time_now - engine->time_start) / AV_TIME_BASE : 0.0,
-        0, TEXT_COLOR_RED "s" TEXT_COLOR_NORMAL,
-
-        // Video
-        10 - 1, engine->video_run == 1 && engine->video_frame->pts >= 0 ? av_q2d(engine->video_format_context->streams[engine->video_stream_index]->time_base) * engine->video_frame->pts : 0.0,
-        0, TEXT_COLOR_RED "s" TEXT_COLOR_NORMAL,
-
-        // Audio
-        10 - 1, engine->audio_run == 1 && engine->audio_frame->pts >= 0 ? av_q2d(engine->audio_format_context->streams[engine->audio_stream_index]->time_base) * engine->audio_frame->pts : 0.0,
-        0, TEXT_COLOR_RED "s" TEXT_COLOR_NORMAL,
-
-        // Duration
-        10 - 1, engine->video_run == 1 && engine->video_format_context->duration > 0 ? (double)engine->video_format_context->duration / AV_TIME_BASE : 0,
-        0, TEXT_COLOR_RED "s" TEXT_COLOR_NORMAL,
-
-        // Volume
-        10 - 1, engine->audio_run == 1 ? engine->audio_gain * 100.0f : 0.0f,
-        0, TEXT_COLOR_RED "%" TEXT_COLOR_NORMAL,
-
-        // Size
-        10 - 1, engine->video_run == 1 ? engine->video_codec_context->width : 0,
-        0, TEXT_COLOR_RED "x" TEXT_COLOR_NORMAL,
-        0, engine->video_run == 1 ? engine->video_codec_context->height : 0,
-
-        // Index
-        10, engine->pid_count > 0 ? engine->pid_current + 1 : 0,
-        0, TEXT_COLOR_RED "/" TEXT_COLOR_NORMAL,
-        0, engine->pid_count,
-
-        // Link to list
-        engine->url_to_list ? engine->url_to_list : "No link to list",
-        engine->pid_current
-    );
-}
-
-int audio_thread(void* data) {
-    engine_t* engine;
-
-    engine = data;
-
-    if ((engine->audio_result = media_open(&engine->audio_format_context, engine->url, AVMEDIA_TYPE_AUDIO, &engine->audio_stream_index, &engine->audio_codec_context, NULL)) == 0) {
-        if ((engine->audio_result = ffmpeg_audio_context_alloc(&engine->audio_swr_context, engine->audio_codec_context, AV_SAMPLE_FMT_S16)) == 0) {
-            if ((engine->audio_packet = av_packet_alloc()) != NULL) {
-                if ((engine->audio_frame = av_frame_alloc()) != NULL) {
-                    SDL_AudioStream* audio_stream;
-                    SDL_AudioSpec audio_spec;
-                    SDL_AudioDeviceID audio_device_id;
-
-                    audio_spec.format = SDL_AUDIO_S16;
-                    audio_spec.channels = engine->audio_codec_context->ch_layout.nb_channels;
-                    audio_spec.freq = engine->audio_codec_context->sample_rate;
-
-                    if ((audio_stream = SDL_CreateAudioStream(&audio_spec, &audio_spec)) != NULL) {
-                        if ((audio_device_id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &audio_spec)) != 0) {
-                            if (SDL_BindAudioStream(audio_device_id, audio_stream) == 0) {
-                                uint8_t* audio_data;
-
-                                if ((audio_data = malloc(engine->audio_codec_context->frame_size * engine->audio_codec_context->ch_layout.nb_channels * sizeof(int16_t))) != NULL) {
-                                    engine->audio_run = 1;
-
-                                    while (engine->audio_run == 1) {
-                                        if (engine->audio_time_seek > 0.0) {
-                                            engine->audio_result = ffmpeg_seek(&engine->audio_run, engine->audio_format_context, engine->audio_time_seek, engine->audio_packet, engine->audio_stream_index, engine->audio_codec_context, engine->audio_frame);
-                                            engine->audio_time_seek = 0.0;
-                                        }
-
-                                        while (engine->audio_run == 1 && engine->video_run == 1 && engine->video_time_seek > 0.0) {
-                                            av_usleep(10000);
-                                        }
-
-                                        if (engine->audio_run == 1 && engine->audio_result == 0 && av_q2d(engine->audio_format_context->streams[engine->audio_stream_index]->time_base) * engine->audio_frame->pts < (double)(engine->time_now - engine->time_start) / AV_TIME_BASE) {
-                                            engine->audio_result = ffmpeg_get_next_frame(engine->audio_format_context, engine->audio_packet, engine->audio_stream_index, engine->audio_codec_context, engine->audio_frame);
-                                        }
-
-                                        if (engine->audio_result == 0) {
-                                            if ((engine->audio_result = swr_convert(engine->audio_swr_context, &audio_data, engine->audio_frame->nb_samples, engine->audio_frame->data, engine->audio_frame->nb_samples)) >= 0) {
-                                                engine->audio_result = 0;
-
-                                                for (int i = 0; i < engine->audio_codec_context->frame_size * engine->audio_codec_context->ch_layout.nb_channels; ++i) {
-                                                    ((int16_t*)audio_data)[i] *= engine->audio_gain * min(1.0f, glm_vec3_distance(G_POSITION, (vec3) { -1.0f, 0.0f, 0.0f }));
-
-                                                    if (engine->audio_codec_context->ch_layout.nb_channels == 2) {
-                                                        ++i;
-                                                        ((int16_t*)audio_data)[i] *= engine->audio_gain * min(1.0f, glm_vec3_distance(G_POSITION, (vec3) { 1.0f, 0.0f, 0.0f }));
-                                                    }
-                                                }
-
-                                                if (SDL_PutAudioStreamData(audio_stream, audio_data, engine->audio_codec_context->frame_size * engine->audio_codec_context->ch_layout.nb_channels * sizeof(int16_t)) == 0) {
-                                                    while (engine->audio_run == 1 && SDL_GetAudioStreamQueued(audio_stream) > engine->audio_codec_context->frame_size * engine->audio_codec_context->ch_layout.nb_channels * sizeof(int16_t)) {
-                                                        SDL_DelayNS(10000000);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else if (engine->audio_result == AVERROR_EOF) {
-                                            avcodec_flush_buffers(engine->audio_codec_context);
-                                            engine->audio_time_seek = 0.000001;
-
-                                            if (engine->video_run == 1) {
-                                                engine->video_time_seek = 0.000001;
-                                            }
-                                        }
-                                    }
-
-                                    free(audio_data);
-                                }
-                                else {
-                                    engine->audio_result = AVERROR(ENOMEM);
-                                }
-                            }
-
-                            SDL_CloseAudioDevice(audio_device_id);
-                        }
-
-                        SDL_DestroyAudioStream(audio_stream);
-                    }
-                    else {
-                        PRINT_TEXT(SDL_GetError());
-                    }
-
-                    av_frame_free(&engine->audio_frame);
-                }
-                else {
-                    engine->audio_result = AVERROR(ENOMEM);
-                }
-
-                av_packet_free(&engine->audio_packet);
-            }
-            else {
-                engine->audio_result = AVERROR(ENOMEM);
-            }
-
-            swr_free(&engine->audio_swr_context);
-        }
-
-        avcodec_free_context(&engine->audio_codec_context);
-        avformat_close_input(&engine->audio_format_context);
-    }
-
-    engine->audio_run = 0;
-
-    return engine->audio_result;
-}
-
-int node_sort_transparent_nodes_to_draw_correctly(const void* a, const void* b) {
-    return
-        ((node_t**)a)[0]->distance < ((node_t**)b)[0]->distance ? -1 :
-        ((node_t**)a)[0]->distance > ((node_t**)b)[0]->distance ?  1 :
-        0;
-}
-
-#endif
