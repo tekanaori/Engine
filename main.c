@@ -1,4 +1,52 @@
 /*
+ * +380 96 586 65 99
+ *
+ * Рекомендации:
+ * 1) Измерение АД утром и вечером (10 дней);
+ * 2) Гимнастика по Шишонину (без музыки). Первый месяц каждый день, дальше можно через день; https://www.youtube.com/watch?v=MR4Y4SuC3qk
+ * 3) Упражнения для мышц глаза;
+ * 4) Планка 2 мин 2 раза в день;
+ * 5) Лецитин по 1 капс х2 раза в день, с едой, утро и обед 1 мес; затем по 1 капс - только утром.
+ * 6) Магний комплекс по 1 капс х2 раза в день - обед и вечером (до еды) - 1 мес;
+ * 7) Анализы:
+ *   1 - Общий анализ крови;
+ *   2 - Вит Д3 (25-ОН);
+ *   3 - Лактозная непереносимость ПЦР (кровь);
+ *   4 - Печеночные пробы.
+ *
+ * Завтрак:
+ *   Облегчаем организм, ждём 5 минут и измеряем АД;
+ *   Кушаем и употребляем Лецитин во время еды;
+ *   Ждём 1-1,5 час(а) и делаем гимнастику по Шишонину.
+ * Обед:
+ *   Употребляем магний и ждём 10 минут до еды;
+ *   Кушаем и употребляем Лецитин во время еды.
+ * Ужин (вечер):
+ *   Облегчаем организм, ждём 5 минут и измеряем АД (21.00 - 22.00 час);
+ *   Употребляем магний и ждём 10 минут до еды;
+ *   Кушаем.
+ *
+ * 1) Измерение АД: [SYS/DIA/PUL]
+ *   09.05: утро: [116/85/84] (оранж)    вечер: [138/89/82] (оранж)
+ *   10.05: утро: [115/73/83] (зелен)    вечер: [136/88/100] (оранж)
+ *   11.05: утро: [112/75/81] (зелен)    вечер: [131/88/77] (оранж)
+ *   12.05: утро: [116/75/80] (зелен)    вечер: [123/79/79] (зелен)
+ *   13.05: утро: [111/73/84] (зелен)    вечер: [122/74/82] (зелен)
+ *   14.05: утро: [111/66/65] (зелен)    вечер: [124/75/82] (зелен)
+ *   15.05: утро: [110/65/66] (зелен)    вечер: [//] ()
+ *   16.05: утро: [//] ()    вечер: [//] ()
+ *   17.05: утро: [//] ()    вечер: [//] ()
+ *   18.05: утро: [//] ()    вечер: [//] ()
+ *
+ * 5) Начал употреблять 13.05
+ * 6) Начал употреблять 13.05
+ *
+ * Систола (SYS): так же известна как верхнее артериальное давление. Это максимальное давление, которое оказывает кровь на кровеносные сосуды.
+ * Диастола (DIA): так же известна как нижнее артериальное  давлением. Это минимальное давление, которое оказывает кровь на кровеносные сосуды.
+ * Частота пульса (PUL): это количество сердечных сокращений в минуту.
+ */
+
+/*
  * "../../tcc/tcc" -run -I../include -I../include/winapi -I../include/libxml2 -L. -lavcodec-61 -lavformat-61 -lavutil-59 -lswresample-5 -lswscale-8 -lcurl-x64 -lxml2-2 -lglfw3 -lwinpthread-1 main.c
  *
  * Get-AppxPackage -AllUsers | where-object {$_.name -notlike "*store*"} | Remove-AppxPackage # Remove all except Store
@@ -27,19 +75,19 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
-GLuint ogl_texture_create(GLsizei width, GLsizei height, GLenum format, const void* pixels) {
+GLuint ogl_texture_create(GLint mag_filter, GLint min_filter, GLint wrap_s, GLint wrap_t, GLsizei width, GLsizei height, GLenum format, const void* pixels) {
     GLuint texture;
 
     glGenTextures(1, &texture);
 
     if (texture > 0) {
         glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
-        // glGenerateMipmap(GL_TEXTURE_2D); /* OpenGL 3.0 */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -88,8 +136,6 @@ void ogl_buffer_attribute(GLenum target, GLuint buffer, GLuint index, GLint size
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(target, 0);
 }
-
-/* OpenGL 4.3 */
 
 void ogl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user_param) {
     const char* source_string;
@@ -286,118 +332,7 @@ int ffmpeg_from_memory_alloc(AVFormatContext** out_format_context, void* data, s
     return result;
 }
 
-
-int ffmpeg_image_load_from_url(const char* url, uint8_t** out_pixels, int* out_width, int* out_height) {
-    AVFormatContext* format_context = NULL;
-    AVCodecContext* codec_context = NULL;
-    struct SwsContext* sws_context = NULL;
-    AVPacket* packet;
-    AVFrame* frame;
-    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
-    int pitch[4] = { 0, 0, 0, 0 };
-    int stream_index;
-    int result;
-
-    if ((result = ffmpeg_format_context_alloc(&format_context, url, AVMEDIA_TYPE_VIDEO, &stream_index)) == 0) {
-        if ((result = ffmpeg_codec_context_alloc(&codec_context, format_context->streams[stream_index]->codecpar, NULL)) == 0) {
-            if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
-                if ((packet = av_packet_alloc()) != NULL) {
-                    if ((frame = av_frame_alloc()) != NULL) {
-                        if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
-                            pitch[0] = codec_context->width * 4;
-
-                            if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
-                                if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
-                                    result = 0;
-
-                                    out_pixels[0] = pixels[0];
-                                    out_width[0] = frame->width;
-                                    out_height[0] = frame->height;
-                                }
-                            }
-                        }
-                        else {
-                            result = AVERROR(ENOMEM);
-                        }
-
-                        av_frame_free(&frame);
-                    }
-                    else {
-                        result = AVERROR(ENOMEM);
-                    }
-
-                    av_packet_free(&packet);
-                }
-                else {
-                    result = AVERROR(ENOMEM);
-                }
-
-                sws_freeContext(sws_context);
-            }
-
-            avcodec_free_context(&codec_context);
-        }
-
-        avformat_close_input(&format_context);
-    }
-
-    return result;
-}
-
-int ffmpeg_image_load_from_memory(void* data, size_t size, uint8_t** out_pixels, int* out_width, int* out_height) {
-    AVFormatContext* format_context = NULL;
-    AVCodecContext* codec_context = NULL;
-    struct SwsContext* sws_context = NULL;
-    AVPacket* packet;
-    AVFrame* frame;
-    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
-    int pitch[4] = { 0, 0, 0, 0 };
-    int stream_index;
-    int result;
-
-    if ((result = ffmpeg_from_memory_alloc(&format_context, data, size, AVMEDIA_TYPE_VIDEO, &stream_index, &codec_context, NULL)) == 0) {
-        if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
-            if ((packet = av_packet_alloc()) != NULL) {
-                if ((frame = av_frame_alloc()) != NULL) {
-                    if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
-                        pitch[0] = codec_context->width * 4;
-
-                        if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
-                            if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
-                                result = 0;
-
-                                out_pixels[0] = pixels[0];
-                                out_width[0] = frame->width;
-                                out_height[0] = frame->height;
-                            }
-                        }
-                    }
-                    else {
-                        result = AVERROR(ENOMEM);
-                    }
-
-                    av_frame_free(&frame);
-                }
-                else {
-                    result = AVERROR(ENOMEM);
-                }
-
-                av_packet_free(&packet);
-            }
-            else {
-                result = AVERROR(ENOMEM);
-            }
-
-            sws_freeContext(sws_context);
-        }
-
-        avcodec_free_context(&codec_context);
-        avformat_close_input(&format_context);
-    }
-
-    return result;
-}
-
+/* Additional */
 
 int ffmpeg_get_next_frame(AVFormatContext* format_context, AVPacket* packet, int stream_index, AVCodecContext* codec_context, AVFrame* frame) {
     int result;
@@ -442,13 +377,98 @@ int ffmpeg_seek(const int* run, AVFormatContext* format_context, double seconds,
     return result;
 }
 
+#include <libavutil/imgutils.h>
+
+int ffmpeg_image_parse(AVFormatContext* format_context, AVCodecContext* codec_context, int stream_index, uint8_t** out_pixels, int* out_width, int* out_height) {
+    struct SwsContext* sws_context = NULL;
+    AVPacket* packet;
+    AVFrame* frame;
+    uint8_t* pixels[4] = { NULL, NULL, NULL, NULL };
+    int pitch[4] = { 0, 0, 0, 0 };
+    int result;
+
+    if ((result = ffmpeg_video_context_alloc(&sws_context, codec_context, AV_PIX_FMT_RGBA)) == 0) {
+        if ((packet = av_packet_alloc()) != NULL) {
+            if ((frame = av_frame_alloc()) != NULL) {
+                if ((pixels[0] = av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGBA, codec_context->width, codec_context->height, 1))) != NULL) {
+                    pitch[0] = codec_context->width * 4;
+
+                    if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
+                        if ((result = sws_scale(sws_context, frame->data, frame->linesize, 0, codec_context->height, pixels, pitch)) >= 0) {
+                            out_pixels[0] = pixels[0];
+                            out_width[0] = frame->width;
+                            out_height[0] = frame->height;
+                            result = 0;
+                        }
+                    }
+                }
+                else {
+                    result = AVERROR(ENOMEM);
+                }
+
+                av_frame_free(&frame);
+            }
+            else {
+                result = AVERROR(ENOMEM);
+            }
+
+            av_packet_free(&packet);
+        }
+        else {
+            result = AVERROR(ENOMEM);
+        }
+
+        sws_freeContext(sws_context);
+    }
+
+    return result;
+}
+
+int ffmpeg_image_load_from_url(const char* url, uint8_t** out_pixels, int* out_width, int* out_height) {
+    AVFormatContext* format_context = NULL;
+    AVCodecContext* codec_context = NULL;
+    int stream_index;
+    int result;
+
+    if ((result = ffmpeg_format_context_alloc(&format_context, url, AVMEDIA_TYPE_VIDEO, &stream_index)) == 0) {
+        if ((result = ffmpeg_codec_context_alloc(&codec_context, format_context->streams[stream_index]->codecpar, NULL)) == 0) {
+            result = ffmpeg_image_parse(format_context, codec_context, stream_index, out_pixels, out_width, out_height);
+            avcodec_free_context(&codec_context);
+        }
+
+        avformat_close_input(&format_context);
+    }
+
+    return result;
+}
+
+int ffmpeg_image_load_from_memory(void* data, size_t size, uint8_t** out_pixels, int* out_width, int* out_height) {
+    AVFormatContext* format_context = NULL;
+    AVCodecContext* codec_context = NULL;
+    int stream_index;
+    int result;
+
+    if ((result = ffmpeg_from_memory_alloc(&format_context, data, size, AVMEDIA_TYPE_VIDEO, &stream_index, &codec_context, NULL)) == 0) {
+        result = ffmpeg_image_parse(format_context, codec_context, stream_index, out_pixels, out_width, out_height);
+        avcodec_free_context(&codec_context);
+        avformat_close_input(&format_context);
+    }
+
+    return result;
+}
+
 #endif /* Multimedia - FFmpeg */
 
 #if 1 /* Audio - miniaudio */
 
 #ifndef CP_UTF8
-    #define CP_UTF8 65001
+    #define CP_UTF8 65001 /* miniaudio.h:21553: error: 'CP_UTF8' undeclared */
 #endif /* CP_UTF8 */
+
+#ifdef __APPLE__
+    #define MA_NO_RUNTIME_LINKING
+#endif /* __APPLE__ */
+
 #define MA_NO_DECODING
 #define MA_NO_ENCODING
 #define MA_NO_WAV
@@ -457,9 +477,7 @@ int ffmpeg_seek(const int* run, AVFormatContext* format_context, double seconds,
 #define MA_NO_NODE_GRAPH
 #define MA_NO_ENGINE
 #define MA_NO_GENERATION
-#ifdef __APPLE__
-    #define MA_NO_RUNTIME_LINKING
-#endif /* __APPLE__ */
+
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
 
@@ -467,8 +485,8 @@ int ffmpeg_seek(const int* run, AVFormatContext* format_context, double seconds,
 
 #if 1 /* Network - cURL */
 
-#define __MINGW32__ /* tcc: include/curl/system.h:464: error: ';' expected (got "curl_socklen_t") */
-#include <curl/curl.h>
+#define __MINGW32__ /* tcc: curl/system.h:464: error: ';' expected (got "curl_socklen_t") */
+    #include <curl/curl.h>
 #undef __MINGW32__
 
 size_t curl_write_function_callback(void* data, size_t size, size_t nmemb, void** out_data) {
@@ -535,48 +553,52 @@ CURLcode curl_get_url_data(const char* url, void** out_data, long timeout_ms) {
 xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_name, const xmlChar* prop_value, const xmlChar* content) {
     while (node != NULL) {
         if (node->type == XML_ELEMENT_NODE) {
-            if (xmlStrcmp(node->name, node_name) == 0) {
-                xmlChar* prop_data;
-                int is_it;
+            xmlChar* prop_data;
+            int is_this;
 
-                prop_data = NULL;
-                is_it = 1;
+            prop_data = NULL;
+            is_this = 1;
 
-                if (prop_name != NULL) {
-                    if ((prop_data = xmlGetProp(node, prop_name)) == NULL) { /* Do not forget to free up memory after xmlGetProp. */
-                        is_it = 0;
-                    }
+            if (node_name != NULL) {
+                if (xmlStrcmp(node->name, node_name) != 0) {
+                    is_this = 0;
                 }
+            }
 
-                if (prop_value != NULL) {
-                    if (prop_data != NULL) {
-                        if (xmlStrcmp(prop_data, prop_value) != 0) {
-                            is_it = 0;
-                        }
-                    }
+            if (is_this == 1 && prop_name != NULL) {
+                if ((prop_data = xmlGetProp(node, prop_name)) == NULL) { /* Do not forget to free up memory after xmlGetProp. */
+                    is_this = 0;
                 }
+            }
 
+            if (is_this == 1 && prop_value != NULL) {
                 if (prop_data != NULL) {
-                    xmlFree(prop_data);
-                }
-
-                if (content != NULL) {
-                    xmlChar* node_content;
-
-                    is_it = 0;
-
-                    if ((node_content = xmlNodeGetContent(node)) != NULL) { /* Do not forget to free up memory after xmlNodeGetContent. */
-                        if (xmlStrstr(node_content, content) != NULL) {
-                            is_it = 1;
-                        }
-
-                        xmlFree(node_content);
+                    if (xmlStrcmp(prop_data, prop_value) != 0) {
+                        is_this = 0;
                     }
                 }
+            }
 
-                if (is_it == 1) {
-                    return node;
+            if (prop_data != NULL) {
+                xmlFree(prop_data);
+            }
+
+            if (is_this == 1 && content != NULL) {
+                xmlChar* node_content;
+
+                is_this = 0;
+
+                if ((node_content = xmlNodeGetContent(node)) != NULL) { /* Do not forget to free up memory after xmlNodeGetContent. */
+                    if (xmlStrstr(node_content, content) != NULL) {
+                        is_this = 1;
+                    }
+
+                    xmlFree(node_content);
                 }
+            }
+
+            if (is_this == 1) {
+                return node;
             }
         }
 
@@ -597,15 +619,6 @@ xmlNode* xml_find(xmlNode* node, const xmlChar* node_name, const xmlChar* prop_n
 /*
  * Sandbox
  */
-#include <pthread.h>
-
-#include <libavutil/imgutils.h>
-#include <libavutil/random_seed.h>
-#include <libavutil/time.h>
-
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #if 1 /* XML - Random 18+ video/image */
 
 htmlDocPtr xml_get_url_data(const char* url, long timeout_ms) {
@@ -911,7 +924,7 @@ void xml_realbooru_com_get_source_url(const char* url_to_list, int pid, char** o
 
 #endif /* XML - Random 18+ video/image */
 
-#if 1 /* cgltf to OpenGL */
+#if 1 /* glTF to OpenGL */
 
 #define CGLTF_IMPLEMENTATION
 #include <cgltf/cgltf.h>
@@ -973,8 +986,7 @@ typedef struct culling {
 } culling_t;
 
 void culling_initialize(culling_t* culling) {
-    culling->box[0][0] = culling->box[0][1] = culling->box[0][2] = FLT_MAX;
-    culling->box[1][0] = culling->box[1][1] = culling->box[1][2] = -FLT_MAX;
+    glm_aabb_invalidate(culling->box);
 }
 
 void culling_set_from_data(const float* data, size_t count, culling_t* culling) {
@@ -1014,9 +1026,6 @@ void ogl_material_initialize(ogl_material_t* material) {
 }
 
 typedef struct ogl_primitive {
-    ogl_material_t* material;
-    transform_t transform;
-    culling_t culling;
     GLuint vertex_array_object;
     GLuint element_buffer_object;
     GLsizei count;
@@ -1024,9 +1033,6 @@ typedef struct ogl_primitive {
 } ogl_primitive_t;
 
 void ogl_primitive_initialize(ogl_primitive_t* primitive) {
-    primitive->material = NULL;
-    transform_initialize(&primitive->transform);
-    culling_initialize(&primitive->culling);
     primitive->vertex_array_object = 0;
     primitive->element_buffer_object = 0;
     primitive->count = 0;
@@ -1045,41 +1051,40 @@ void ogl_mesh_initialize(ogl_mesh_t* mesh) {
     mesh->primitives_count = 0;
 }
 
-typedef struct ogl_node ogl_node_t;
 typedef struct ogl_node {
     char* name;
-    ogl_node_t* children;
+    ogl_material_t* material;
     ogl_mesh_t* mesh;
-    transform_t transform;
-    GLuint children_count;
-    mat4 matrix;
 } ogl_node_t;
 
 void ogl_node_initialize(ogl_node_t* node) {
     node->name = NULL;
-    node->children = NULL;
+    node->material = NULL;
     node->mesh = NULL;
-    transform_initialize(&node->transform);
-    node->children_count = 0;
-    glm_mat4_identity(node->matrix);
 }
 
 typedef struct ogl_scene {
+    char* name;
     ogl_material_t* materials;
+    ogl_mesh_t* meshes;
     ogl_node_t* nodes;
     GLuint materials_count;
+    GLuint meshes_count;
     GLuint nodes_count;
 } ogl_scene_t;
 
 void ogl_scene_initialize(ogl_scene_t* scene) {
+    scene->name = NULL;
     scene->materials = NULL;
+    scene->meshes = NULL;
     scene->nodes = NULL;
     scene->materials_count = 0;
+    scene->meshes_count = 0;
     scene->nodes_count = 0;
 }
 
 
-int cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_folder, uint8_t** out_pixels, int* out_width, int* out_height) {
+int cgltf_image_parse(const cgltf_image* image, const char* path_to_folder, uint8_t** out_pixels, int* out_width, int* out_height) {
     int result;
 
     if (image->uri != NULL) {
@@ -1118,15 +1123,15 @@ int cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_folder,
             }
         }
         else {
-            if (path_to_gltf_folder == NULL) {
-                puts("path_to_gltf_folder is NULL!");
+            if (path_to_folder == NULL) {
+                puts("path_to_folder is NULL!");
                 return AVERROR(ENOMEM);
             }
 
             char* image_path;
 
-            if ((image_path = malloc(strlen(path_to_gltf_folder) + strlen(image->uri) + 1)) != NULL) {
-                strcpy(image_path, path_to_gltf_folder);
+            if ((image_path = malloc(strlen(path_to_folder) + strlen(image->uri) + 1)) != NULL) {
+                strcpy(image_path, path_to_folder);
                 strcat(image_path, image->uri);
                 result = ffmpeg_image_load_from_url(image_path, out_pixels, out_width, out_height);
                 free(image_path);
@@ -1159,68 +1164,55 @@ int cgltf_image_parse(const cgltf_image* image, const char* path_to_gltf_folder,
     return result;
 }
 
-void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_material) {
-    // puts("============================================================");
-    // printf("Material name: %s\n", material->name);
-    // printf("  has_pbr_metallic_roughness: %i\n", material->has_pbr_metallic_roughness);
-    // printf("  has_pbr_specular_glossiness: %i\n", material->has_pbr_specular_glossiness);
-    // printf("  has_clearcoat: %i\n", material->has_clearcoat);
-    // printf("  has_transmission: %i\n", material->has_transmission);
-    // printf("  has_volume: %i\n", material->has_volume);
-    // printf("  has_ior: %i\n", material->has_ior);
-    // printf("  has_specular: %i\n", material->has_specular);
-    // printf("  has_sheen: %i\n", material->has_sheen);
-    // printf("  has_emissive_strength: %i\n", material->has_emissive_strength);
-    // printf("  has_iridescence: %i\n", material->has_iridescence);
+void cgltf_material_to_ogl_material(const cgltf_material* material, ogl_material_t* out_material) {
+    out_material->name = strdup(material->name);
 
-    {
-        const char* vertex_shader_source =
-            "#version 330 core\n"
+    const char* vertex_shader_source =
+        "#version 330 core\n"
 
-            "layout (location = 0) in vec3 aPositions;\n"
-            "layout (location = 1) in vec3 aNormals;\n"
-            "layout (location = 2) in vec3 aTangents;\n"
-            "layout (location = 3) in vec2 aTextureCoordinates;\n"
-            "layout (location = 4) in vec4 aColors;\n"
-            "layout (location = 5) in vec3 aJoints;\n"
-            "layout (location = 6) in vec3 aWeights;\n"
+        "layout (location = 0) in vec3 aPositions;\n"
+        "layout (location = 1) in vec3 aNormals;\n"
+        "layout (location = 2) in vec3 aTangents;\n"
+        "layout (location = 3) in vec2 aTextureCoordinates;\n"
+        "layout (location = 4) in vec4 aColors;\n"
+        "layout (location = 5) in vec3 aJoints;\n"
+        "layout (location = 6) in vec3 aWeights;\n"
 
-            "out vec2 TextureCoordinates;\n"
+        "out vec2 TextureCoordinates;\n"
 
-            "uniform mat4 model;\n"
-            "uniform mat4 view;\n"
-            "uniform mat4 projection;\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 projection;\n"
 
-            "void main() {\n"
-            "    TextureCoordinates = aTextureCoordinates;\n"
-            "    gl_Position = projection * view * model * vec4(aPositions, 1.0);\n"
-            "}\n"
-        ;
+        "void main() {\n"
+        "    TextureCoordinates = aTextureCoordinates;\n"
+        "    gl_Position = projection * view * model * vec4(aPositions, 1.0);\n"
+        "}\n"
+    ;
 
-        const char* fragment_shader_source =
-            "#version 330 core\n"
+    const char* fragment_shader_source =
+        "#version 330 core\n"
 
-            "in vec2 TextureCoordinates;\n"
+        "in vec2 TextureCoordinates;\n"
 
-            "out vec4 FragmentColor;\n"
+        "out vec4 FragmentColor;\n"
 
-            "uniform sampler2D texture0;\n"
+        "uniform sampler2D texture0;\n"
 
-            "void main() {\n"
-            "    FragmentColor = texture(texture0, TextureCoordinates);\n"
-            "}\n"
-        ;
+        "void main() {\n"
+        "    FragmentColor = texture(texture0, TextureCoordinates);\n"
+        "}\n"
+    ;
 
-        GLuint shaders[] = {
-            ogl_shader_create(GL_VERTEX_SHADER, &vertex_shader_source),
-            ogl_shader_create(GL_FRAGMENT_SHADER, &fragment_shader_source)
-        };
+    GLuint shaders[] = {
+        ogl_shader_create(GL_VERTEX_SHADER, &vertex_shader_source),
+        ogl_shader_create(GL_FRAGMENT_SHADER, &fragment_shader_source)
+    };
 
-        ogl_material->program = ogl_program_create(shaders, sizeof(shaders) / sizeof(shaders[0]));
+    out_material->program = ogl_program_create(shaders, sizeof(shaders) / sizeof(shaders[0]));
 
-        glDeleteShader(shaders[0]);
-        glDeleteShader(shaders[1]);
-    }
+    glDeleteShader(shaders[0]);
+    glDeleteShader(shaders[1]);
 
     if (material->has_pbr_metallic_roughness == 1) {
         if (material->pbr_metallic_roughness.base_color_texture.texture != NULL) {
@@ -1231,7 +1223,16 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
                 int result;
 
                 if ((result = cgltf_image_parse(material->pbr_metallic_roughness.base_color_texture.texture->image, NULL, &pixels, &width, &height)) == 0) {
-                    ogl_material->texture = ogl_texture_create(width, height, GL_RGBA, pixels);
+                    out_material->texture = ogl_texture_create(
+                        material->pbr_metallic_roughness.base_color_texture.texture->sampler != NULL ? material->pbr_metallic_roughness.base_color_texture.texture->sampler->mag_filter : GL_LINEAR,
+                        material->pbr_metallic_roughness.base_color_texture.texture->sampler != NULL ? material->pbr_metallic_roughness.base_color_texture.texture->sampler->min_filter : GL_NEAREST_MIPMAP_LINEAR,
+                        material->pbr_metallic_roughness.base_color_texture.texture->sampler != NULL ? material->pbr_metallic_roughness.base_color_texture.texture->sampler->wrap_s : GL_REPEAT,
+                        material->pbr_metallic_roughness.base_color_texture.texture->sampler != NULL ? material->pbr_metallic_roughness.base_color_texture.texture->sampler->wrap_t : GL_REPEAT,
+                        width,
+                        height,
+                        GL_RGBA,
+                        pixels
+                    );
                     av_freep(&pixels);
                 }
                 else {
@@ -1266,7 +1267,7 @@ void ogl_material_parse(const cgltf_material* material, ogl_material_t* ogl_mate
     // }
 }
 
-void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_primitive) {
+void cgltf_primitive_to_ogl_primitive(const cgltf_primitive* primitive, ogl_primitive_t* out_primitive) {
     glGenVertexArrays(1, &out_primitive->vertex_array_object);
 
     if (primitive->indices != NULL) {
@@ -1308,7 +1309,7 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
                     out_primitive->count = primitive->attributes[i].data->count;
                 }
 
-                culling_set_from_data(accessor_data, primitive->attributes[i].data->buffer_view->size / sizeof(float), &out_primitive->culling);
+                // culling_set_from_data(accessor_data, primitive->attributes[i].data->buffer_view->size / sizeof(float), &out_primitive->culling);
             }
             else if (primitive->attributes[i].type == cgltf_attribute_type_normal) {
                 vertex_buffer_object = ogl_buffer_create(GL_ARRAY_BUFFER, primitive->attributes[i].data->buffer_view->size, accessor_data);
@@ -1366,26 +1367,185 @@ void ogl_primitive_parse(const cgltf_primitive* primitive, ogl_primitive_t* out_
         glBindVertexArray(0);
         glDeleteBuffers(1, &vertex_buffer_object);
     }
-
-    if (primitive->material != NULL) {
-        if ((out_primitive->material = malloc(sizeof(ogl_material_t))) != NULL) {
-            ogl_material_initialize(out_primitive->material);
-            ogl_material_parse(primitive->material, out_primitive->material);
-        }
-    }
 }
 
-void ogl_mesh_parse(const cgltf_mesh* mesh, ogl_mesh_t* out_mesh) {
+void cgltf_mesh_to_ogl_mesh(const cgltf_mesh* mesh, ogl_mesh_t* out_mesh) {
+    out_mesh->name = strdup(mesh->name);
+
     if ((out_mesh->primitives = malloc(sizeof(ogl_primitive_t) * mesh->primitives_count)) != NULL) {
         out_mesh->primitives_count = mesh->primitives_count;
 
         for (cgltf_size i = 0; i < mesh->primitives_count; ++i) {
             ogl_primitive_initialize(&out_mesh->primitives[i]);
-            ogl_primitive_parse(&mesh->primitives[i], &out_mesh->primitives[i]);
+            cgltf_primitive_to_ogl_primitive(&mesh->primitives[i], &out_mesh->primitives[i]);
         }
     }
 }
 
+
+void ogl_scene_add_mesh(ogl_scene_t* scene, const cgltf_mesh* mesh) {
+    ogl_mesh_t* meshes;
+
+    if ((meshes = realloc(scene->meshes, sizeof(ogl_mesh_t) * scene->meshes_count + 1)) != NULL) {
+        scene->meshes = meshes;
+        ogl_mesh_initialize(&scene->meshes[scene->meshes_count]);
+        cgltf_mesh_to_ogl_mesh(mesh, &scene->meshes[scene->meshes_count]);
+        ++scene->meshes_count;
+    }
+}
+
+void cgltf_scene_to_ogl_scene(const cgltf_scene* scene, ogl_scene_t* out_scene) {
+    out_scene->name = strdup(scene->name);
+
+    for (cgltf_size i = 0; i < scene->nodes_count; ++i) {
+        if (scene->nodes[i]->mesh != NULL) {
+        }
+    }
+
+    /*
+    if ((out_scene->materials = malloc(sizeof(ogl_material_t) * scene->materials_count)) != NULL) {
+        out_scene->materials_count = scene->materials_count;
+
+        for (cgltf_size i = 0; i < scene->materials_count; ++i) {
+            ogl_material_initialize(&out_scene->materials[i]);
+            cgltf_material_to_ogl_material(&scene->materials[i], &out_scene->materials[i]);
+        }
+    }
+
+    if ((out_scene->meshes = malloc(sizeof(ogl_mesh_t) * scene->meshes_count)) != NULL) {
+        out_scene->meshes_count = scene->meshes_count;
+
+        for (cgltf_size i = 0; i < scene->meshes_count; ++i) {
+            ogl_mesh_initialize(&out_scene->meshes[i]);
+            cgltf_mesh_to_ogl_mesh(&scene->meshes[i], &out_scene->meshes[i]);
+        }
+    }
+
+    cgltf_size nodes_geometry_count = 0;
+
+    for (cgltf_size i = 0; i < scene->nodes_count; ++i) {
+        if (scene->nodes[i]->mesh != NULL) {
+            ++nodes_geometry_count;
+        }
+    }
+
+    if ((out_scene->nodes = malloc(sizeof(ogl_node_t) * nodes_geometry_count)) != NULL) {
+        out_scene->nodes_count = nodes_geometry_count;
+
+        for (cgltf_size i = 0, j = 0; i < scene->nodes_count; ++i) {
+            if (scene->nodes[i]->mesh != NULL) {
+                out_scene->nodes[j].mesh = scene->nodes[i]->mesh;
+
+                char* name = scene->nodes[i]->mesh->primitives[0].material->name;
+                out_scene->nodes[j].material = ;
+                ++j;
+            }
+        }
+    }
+    */
+}
+
+cgltf_result cgltf_to_ogl(const char* url, ogl_scene_t* scene) {
+    cgltf_result result;
+    cgltf_options options = {
+        .type = cgltf_file_type_invalid,
+        .json_token_count = 0,
+        .memory = {
+            .alloc_func = NULL,
+            .free_func = NULL,
+            .user_data = NULL
+        },
+        .file = {
+            .read = NULL,
+            .release = NULL,
+            .user_data = NULL
+        }
+    };
+    cgltf_data* data;
+
+    if (strncmp(url, "http", 4) == 0) {
+        void* url_data;
+        CURLcode curl_code;
+
+        if ((curl_code = curl_get_url_data(url, &url_data, 60000)) == CURLE_OK) {
+            if ((result = cgltf_parse(&options, url_data + sizeof(size_t), *((size_t*)url_data), &data)) == cgltf_result_success) {
+                if ((result = cgltf_load_buffers(&options, data, NULL)) == cgltf_result_success) {
+                    if (data->scene != NULL) {
+                        cgltf_scene_to_ogl_scene(data->scene, scene);
+                    }
+                }
+
+                cgltf_free(data);
+            }
+
+            free(url_data);
+        }
+        else {
+            result = cgltf_result_file_not_found;
+            PRINT_TEXT(curl_easy_strerror(curl_code));
+        }
+    }
+    else {
+        if ((result = cgltf_parse_file(&options, url, &data)) == cgltf_result_success) {
+            if ((result = cgltf_load_buffers(&options, data, url)) == cgltf_result_success) {
+                if (data->scene != NULL) {
+                    cgltf_scene_to_ogl_scene(data->scene, scene);
+                }
+            }
+
+            cgltf_free(data);
+        }
+    }
+
+    return result;
+}
+
+
+void ogl_primitive_draw(const ogl_primitive_t* primitive) {
+    glBindVertexArray(primitive->vertex_array_object);
+
+    if (primitive->element_buffer_object > 0 && primitive->count > 0 && primitive->type != 0) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->element_buffer_object);
+        glDrawElements(GL_TRIANGLES, primitive->count, primitive->type, NULL);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+    else {
+        glDrawArrays(GL_TRIANGLES, 0, primitive->count);
+    }
+
+    glBindVertexArray(0);
+}
+
+void ogl_node_draw(const ogl_node_t* node, mat4 projection, mat4 view, vec4 planes[6]) {
+    // if (primitive->material != NULL) {
+    //     glUseProgram(primitive->material->program);
+
+    //     glUniformMatrix4fv(glGetUniformLocation(primitive->material->program, "projection"), 1, GL_FALSE, projection);
+    //     glUniformMatrix4fv(glGetUniformLocation(primitive->material->program, "view"), 1, GL_FALSE, view);
+    //     glUniformMatrix4fv(glGetUniformLocation(primitive->material->program, "model"), 1, GL_FALSE, GLM_MAT4_IDENTITY);
+
+    //     if (primitive->material->texture != 0) {
+    //         glBindTexture(GL_TEXTURE_2D, primitive->material->texture);
+    //     }
+    // }
+
+    if (node->mesh != NULL) {
+        for (GLuint i = 0; i < node->mesh->primitives_count; ++i) {
+            ogl_primitive_draw(&node->mesh->primitives[i]);
+        }
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+}
+
+void ogl_scene_draw(const ogl_scene_t* scene, mat4 projection, mat4 view, vec4 planes[6]) {
+    for (GLuint i = 0; i < scene->meshes_count; ++i) {
+        ogl_node_draw(&scene->meshes[i], projection, view, planes);
+    }
+}
+
+#if 0
 void ogl_node_parse(const cgltf_node* node, ogl_node_t* out_node) {
     out_node->name = strdup(node->name);
 
@@ -1421,85 +1581,9 @@ void ogl_node_parse(const cgltf_node* node, ogl_node_t* out_node) {
     }
 }
 
-void ogl_scene_parse(const cgltf_scene* scene, ogl_scene_t* out_scene) {
-    if ((out_scene->nodes = malloc(sizeof(ogl_node_t) * scene->nodes_count)) != NULL) {
-        out_scene->nodes_count = scene->nodes_count;
-
-        for (cgltf_size i = 0; i < scene->nodes_count; ++i) {
-            ogl_node_initialize(&out_scene->nodes[i]);
-            ogl_node_parse(scene->nodes[i], &out_scene->nodes[i]);
-        }
-    }
-}
-
-cgltf_result ogl_gltf_load(const char* url, ogl_scene_t* scene) {
-    cgltf_result result;
-    cgltf_options options = {
-        .type = cgltf_file_type_invalid,
-        .json_token_count = 0,
-        .memory = {
-            .alloc_func = NULL,
-            .free_func = NULL,
-            .user_data = NULL
-        },
-        .file = {
-            .read = NULL,
-            .release = NULL,
-            .user_data = NULL
-        }
-    };
-    cgltf_data* data;
-
-    if (strncmp(url, "http", 4) == 0) {
-        void* url_data;
-        CURLcode curl_code;
-
-        if ((curl_code = curl_get_url_data(url, &url_data, 60000)) == CURLE_OK) {
-            if ((result = cgltf_parse(&options, url_data + sizeof(size_t), *((size_t*)url_data), &data)) == cgltf_result_success) {
-                if ((result = cgltf_load_buffers(&options, data, NULL)) == cgltf_result_success) {
-                    if (data->scene != NULL) {
-                        ogl_scene_parse(data->scene, scene);
-                    }
-                }
-
-                cgltf_free(data);
-            }
-
-            free(url_data);
-        }
-        else {
-            PRINT_TEXT(curl_easy_strerror(curl_code));
-        }
-    }
-    else {
-        if ((result = cgltf_parse_file(&options, url, &data)) == cgltf_result_success) {
-            if ((result = cgltf_load_buffers(&options, data, url)) == cgltf_result_success) {
-                if (data->scene != NULL) {
-                    ogl_scene_parse(data->scene, scene);
-                }
-            }
-
-            cgltf_free(data);
-        }
-    }
-
-    return result;
-}
-
 void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view, vec4 planes[6]) {
     if (node->mesh != NULL) {
-        /* mat4 matrix; */
-
         for (GLuint i = 0; i < node->mesh->primitives_count; ++i) {
-            /*
-            glm_mat4_identity(matrix);
-            glm_translate(matrix, node->mesh->primitives[i].transform.position);
-            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[0], (vec3) { 1.0f, 0.0f, 0.0f });
-            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[1], (vec3) { 0.0f, 1.0f, 0.0f });
-            glm_rotate(matrix, node->mesh->primitives[i].transform.rotation[2], (vec3) { 0.0f, 0.0f, 1.0f });
-            glm_scale(matrix, node->mesh->primitives[i].transform.scale);
-            */
-
             /* Frustum culling */
             vec3 box[2];
             glm_vec3_copy(node->mesh->primitives[i].culling.box[0], box[0]);
@@ -1516,7 +1600,6 @@ void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view, vec4 plan
             /* TODO: rotate box for currect frustum collision */
 
             if (glm_aabb_frustum(box, planes) == false) {
-                printf("%s skip\n", node->name);
                 continue;
             }
 
@@ -1529,40 +1612,54 @@ void ogl_draw_node(const ogl_node_t* node, mat4 projection, mat4 view, vec4 plan
                 }
 
 
-                #define min_x node->mesh->primitives[i].culling.box[0][0]
-                #define min_y node->mesh->primitives[i].culling.box[0][1]
-                #define min_z node->mesh->primitives[i].culling.box[0][2]
-                #define max_x node->mesh->primitives[i].culling.box[1][0]
-                #define max_y node->mesh->primitives[i].culling.box[1][1]
-                #define max_z node->mesh->primitives[i].culling.box[1][2]
+                // #define min_x node->mesh->primitives[i].culling.box[0][0]
+                // #define min_y node->mesh->primitives[i].culling.box[0][1]
+                // #define min_z node->mesh->primitives[i].culling.box[0][2]
+                // #define max_x node->mesh->primitives[i].culling.box[1][0]
+                // #define max_y node->mesh->primitives[i].culling.box[1][1]
+                // #define max_z node->mesh->primitives[i].culling.box[1][2]
 
+                #define min_x box[0][0]
+                #define min_y box[0][1]
+                #define min_z box[0][2]
+                #define max_x box[1][0]
+                #define max_y box[1][1]
+                #define max_z box[1][2]
 
                 glPointSize(4.0f);
                 glBegin(GL_POINTS);
+                    glVertex3fv(box[0]);
+                    glVertex3fv(box[1]);
+
                     // glVertex3fv(node->mesh->primitives[i].culling.box[0]);
                     // glVertex3fv(node->mesh->primitives[i].culling.box[1]);
-                    glVertex3f(min_x, min_y, min_z);
-                    glVertex3f(min_x, max_y, min_z);
-                    glVertex3f(min_x, min_y, max_z);
-                    glVertex3f(min_x, max_y, max_z);
 
-                    glVertex3f(max_x, min_y, min_z);
-                    glVertex3f(max_x, max_y, min_z);
-                    glVertex3f(max_x, min_y, max_z);
-                    glVertex3f(max_x, max_y, max_z);
+                    // glVertex3f(min_x, min_y, min_z);
+                    // glVertex3f(min_x, max_y, min_z);
+                    // glVertex3f(min_x, min_y, max_z);
+                    // glVertex3f(min_x, max_y, max_z);
+
+                    // glVertex3f(max_x, min_y, min_z);
+                    // glVertex3f(max_x, max_y, min_z);
+                    // glVertex3f(max_x, min_y, max_z);
+                    // glVertex3f(max_x, max_y, max_z);
                 glEnd();
                 glBegin(GL_LINES);
+                    glVertex3fv(box[0]);
+                    glVertex3fv(box[1]);
+
                     // glVertex3fv(node->mesh->primitives[i].culling.box[0]);
                     // glVertex3fv(node->mesh->primitives[i].culling.box[1]);
-                    glVertex3f(min_x, min_y, min_z);
-                    glVertex3f(min_x, max_y, min_z);
-                    glVertex3f(min_x, min_y, max_z);
-                    glVertex3f(min_x, max_y, max_z);
 
-                    glVertex3f(max_x, min_y, min_z);
-                    glVertex3f(max_x, max_y, min_z);
-                    glVertex3f(max_x, min_y, max_z);
-                    glVertex3f(max_x, max_y, max_z);
+                    // glVertex3f(min_x, min_y, min_z);
+                    // glVertex3f(min_x, max_y, min_z);
+                    // glVertex3f(min_x, min_y, max_z);
+                    // glVertex3f(min_x, max_y, max_z);
+
+                    // glVertex3f(max_x, min_y, min_z);
+                    // glVertex3f(max_x, max_y, min_z);
+                    // glVertex3f(max_x, min_y, max_z);
+                    // glVertex3f(max_x, max_y, max_z);
                 glEnd();
 
 
@@ -1603,8 +1700,122 @@ void ogl_scene_draw(const ogl_scene_t* scene, mat4 projection, mat4 view) {
         ogl_draw_node(&scene->nodes[i], projection, view, planes);
     }
 }
+#endif
 
-#endif /* cgltf to OpenGL */
+#endif /* glTF to OpenGL */
+
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+void something_strange(GLFWwindow* window) {
+    static initialize = 0;
+    static mat4 projection;
+    static mat4 view = GLM_MAT4_IDENTITY_INIT;
+    static mat4 projection_view;
+    static vec4 planes[6];
+    static double cursor_position_x;
+    static double cursor_position_y;
+    static int window_width;
+    static int window_height;
+    static ogl_scene_t scene;
+
+    if (initialize == 0) {
+        glfwGetWindowSize(window, &window_width, &window_height);
+        glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.001f, FLT_MAX, projection);
+        glfwSetWindowUserPointer(window, projection);
+        cgltf_to_ogl("C:/Users/User/Downloads/Scene.glb", &scene);
+
+        initialize = 1;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        return;
+    }
+
+    glfwGetWindowSize(window, &window_width, &window_height);
+    glfwGetCursorPos(window, &cursor_position_x, &cursor_position_y);
+
+    float move_speed = 0.2f;
+    float mouse_sensitivity = 1.0f;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        move_speed *= 10.0f;
+        mouse_sensitivity *= 10.0f;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+        move_speed /= 10.0f;
+        mouse_sensitivity /= 10.0f;
+    }
+
+    static double last_time = 0.0;
+
+    if (glfwGetTime() - last_time > 0.01) {
+        last_time = glfwGetTime();
+
+        static int first_person_view = 0;
+        static double first_person_view_change_last_delay = 0.0f;
+
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+            if (last_time - first_person_view_change_last_delay > 0.5) {
+                first_person_view = (first_person_view + 1) % 2;
+
+                if (first_person_view == 1) {
+                    glfwSetCursorPos(window, window_width / 2.0, window_height / 2.0);
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+                }
+                else {
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                }
+
+                first_person_view_change_last_delay = last_time;
+            }
+        }
+
+        if (first_person_view == 1) {
+            if ((int)cursor_position_x != window_width / 2 || (int)cursor_position_y != window_height / 2) {
+                cglm_view_rotate(view, glm_rad((cursor_position_x - window_width / 2) * mouse_sensitivity / 100.0f), (vec3) { 0.0f, 1.0f, 0.0f });
+                cglm_view_rotate(view, glm_rad((cursor_position_y - window_height / 2) * mouse_sensitivity / 100.0f), (vec3) { 1.0f, 0.0f, 0.0f });
+
+                glfwSetCursorPos(window, window_width / 2.0, window_height / 2.0);
+            }
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            cglm_view_move((vec3) { 1.0f, 0.0f, 0.0f }, view, -move_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            cglm_view_move((vec3) { 1.0f, 0.0f, 0.0f }, view, move_speed);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            cglm_view_move_up(view, -move_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+            cglm_view_move_up(view, move_speed);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            cglm_view_move((vec3) { 0.0f, 0.0f, 1.0f }, view, move_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            cglm_view_move((vec3) { 0.0f, 0.0f, 1.0f }, view, -move_speed);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+            glm_mat4_identity(view);
+            glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.001f, FLT_MAX, projection);
+        }
+    }
+
+    glm_mat4_mul(projection, view, projection_view);
+    glm_frustum_planes(projection_view, planes);
+
+    ogl_scene_draw(&scene, projection, view, planes);
+
+    glfwPostEmptyEvent();
+}
 
 
 void glfw_error_callback(int error_code, const char* description) {
@@ -1613,35 +1824,20 @@ void glfw_error_callback(int error_code, const char* description) {
 
 void glfw_framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
-    glm_perspective(GLM_PI_4f, (float)width / height, 0.01f, FLT_MAX, glfwGetWindowUserPointer(window));
+    glm_perspective(GLM_PI_4f, (float)width / height, 0.001f, FLT_MAX, glfwGetWindowUserPointer(window));
 }
 
 
 int main(int argc, char** argv) {
+    GLFWwindow* window;
+
     glfwSetErrorCallback(glfw_error_callback);
 
     if (glfwInit() == GLFW_TRUE) {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
         glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
-        GLFWwindow* window;
-
-    #if 1
-        {
-            GLFWmonitor* monitor;
-            const GLFWvidmode* mode;
-
-            if ((monitor = glfwGetPrimaryMonitor()) != NULL) {
-                if ((mode = glfwGetVideoMode(monitor)) != NULL) {
-                    if ((window = glfwCreateWindow(mode->width - mode->width * 0.1f, mode->height - mode->height * 0.1f, "Engine", NULL, NULL)) != NULL) {
-                        glfwSetWindowPos(window, mode->width * 0.05f, mode->height * 0.05f);
-                    }
-                }
-            }
-        }
-    #endif
-
-        if (window != NULL) {
+        if ((window = glfwCreateWindow(1280, 720, "Engine", NULL, NULL)) != NULL) {
             glfwMakeContextCurrent(window);
             glfwSetFramebufferSizeCallback(window, glfw_framebuffer_size_callback);
 
@@ -1649,9 +1845,9 @@ int main(int argc, char** argv) {
                 glDebugMessageCallback(ogl_debug_message_callback, NULL);
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_BACK);
-                glFrontFace(GL_CCW);
+                // glEnable(GL_CULL_FACE);
+                // glCullFace(GL_BACK);
+                // glFrontFace(GL_CCW);
 
                 glEnable(GL_DEPTH_TEST);
 
@@ -1659,141 +1855,14 @@ int main(int argc, char** argv) {
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-                int window_width;
-                int window_height;
-
-                glfwGetWindowSize(window, &window_width, &window_height);
-
-                mat4 projection;
-                mat4 view = GLM_MAT4_IDENTITY_INIT;
-                {
-                    glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, FLT_MAX, projection);
-                    glfwSetWindowUserPointer(window, projection);
-                }
-
-                double cursor_position_x;
-                double cursor_position_y;
-
-
-                ogl_scene_t scene;
-                ogl_gltf_load("C:/Users/User/Downloads/Scene.glb", &scene);
-
-
                 while (glfwWindowShouldClose(window) == 0) {
-                    glfwWaitEventsTimeout(0.001);
-
-                #if 1
-                    glfwGetWindowSize(window, &window_width, &window_height);
-                    glfwGetCursorPos(window, &cursor_position_x, &cursor_position_y);
-
-                    float move_speed = 1.0f;
-                    float mouse_sensitivity = 1.0f;
-
-                    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-                        move_speed *= 10.0f;
-                        mouse_sensitivity *= 10.0f;
-                    }
-                    else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
-                        move_speed /= 10.0f;
-                        mouse_sensitivity /= 10.0f;
-                    }
-
-                    static double last_time = 0.0;
-
-                    if (glfwGetTime() - last_time > 0.01) {
-                        last_time = glfwGetTime();
-
-                        static int first_person_view = 0;
-                        static double first_person_view_change_last_delay = 0.0f;
-
-                        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-                            if (last_time - first_person_view_change_last_delay > 0.5) {
-                                first_person_view = (first_person_view + 1) % 2;
-
-                                if (first_person_view == 1) {
-                                    glfwSetCursorPos(window, window_width / 2.0, window_height / 2.0);
-                                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-                                }
-                                else {
-                                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                                }
-
-                                first_person_view_change_last_delay = last_time;
-                            }
-                        }
-
-                        if (first_person_view == 1) {
-                            if ((int)cursor_position_x != window_width / 2 || (int)cursor_position_y != window_height / 2) {
-                                cglm_view_rotate(view, glm_rad((cursor_position_x - window_width / 2) * mouse_sensitivity / 100.0f), (vec3) { 0.0f, 1.0f, 0.0f });
-                                cglm_view_rotate(view, glm_rad((cursor_position_y - window_height / 2) * mouse_sensitivity / 100.0f), (vec3) { 1.0f, 0.0f, 0.0f });
-
-                                glfwSetCursorPos(window, window_width / 2.0, window_height / 2.0);
-                            }
-                        }
-
-                        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-                            cglm_view_move((vec3) { 1.0f, 0.0f, 0.0f }, view, -move_speed);
-                        }
-                        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-                            cglm_view_move((vec3) { 1.0f, 0.0f, 0.0f }, view, move_speed);
-                        }
-
-                        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-                            cglm_view_move_up(view, -move_speed);
-                        }
-                        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-                            cglm_view_move_up(view, move_speed);
-                        }
-
-                        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-                            cglm_view_move((vec3) { 0.0f, 0.0f, 1.0f }, view, move_speed);
-                        }
-                        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-                            cglm_view_move((vec3) { 0.0f, 0.0f, 1.0f }, view, -move_speed);
-                        }
-
-                        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-                            glm_mat4_identity(view);
-                            glm_perspective(GLM_PI_4f, (float)window_width / window_height, 0.01f, FLT_MAX, projection);
-                        }
-                    }
-                #endif
+                    glfwWaitEvents();
 
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.rotation[1] -= 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.rotation[1] += 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.rotation[0] -= 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.rotation[0] += 0.1f;
-                    }
-
-                    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.position[0] -= 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.position[0] += 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.position[1] -= 0.1f;
-                    }
-                    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-                        scene.nodes[0].mesh->primitives[0].transform.position[1] += 0.1f;
-                    }
-
-                    ogl_scene_draw(&scene, projection, view);
+                    something_strange(window);
 
                     glfwSwapBuffers(window);
-
-                    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-                        glfwSetWindowShouldClose(window, GLFW_TRUE);
-                    }
                 }
             }
 
