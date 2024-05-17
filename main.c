@@ -1780,14 +1780,81 @@ void glfw_framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 
+AVFormatContext* format_context = NULL;
+AVCodecContext* codec_context = NULL;
+struct SwrContext* swr_context = NULL;
+AVPacket* packet;
+AVFrame* frame;
+int stream_index;
+int result;
+
+void data_callback(ma_device* device, void* output, const void* input, ma_uint32 frame_count) {
+    if ((result = ffmpeg_get_next_frame(format_context, packet, stream_index, codec_context, frame)) == 0) {
+        if ((result = swr_convert(swr_context, &output, frame_count, frame->extended_data, frame->nb_samples)) >= 0) {
+            result = 0;
+        }
+    }
+}
+
+
 int main(int argc, char** argv) {
-    GLFWwindow* window;
+    if ((result = ffmpeg_format_context_alloc(&format_context, "https://webm.rule34.xxx//images/1570/609e04571107690b96d0510fc43d3080.mp4?10172808", AVMEDIA_TYPE_AUDIO, &stream_index)) == 0) {
+        if ((result = ffmpeg_codec_context_alloc(&codec_context, format_context->streams[stream_index]->codecpar, NULL)) == 0) {
+            if ((result = ffmpeg_audio_context_alloc(&swr_context, codec_context, AV_SAMPLE_FMT_S16)) == 0) {
+                if ((packet = av_packet_alloc()) != NULL) {
+                    if ((frame = av_frame_alloc()) != NULL) {
+                        /* Good */
+                    }
+                    else {
+                        result = AVERROR(ENOMEM);
+                    }
+                }
+                else {
+                    result = AVERROR(ENOMEM);
+                }
+            }
+        }
+    }
+
+    if (result != 0) {
+        PRINT_TEXT(av_err2str(result));
+        return result;
+    }
+
+    ma_device_config device_config;
+    device_config = ma_device_config_init(ma_device_type_playback);
+
+    device_config.sampleRate = format_context->streams[stream_index]->codecpar->sample_rate;
+    device_config.dataCallback = data_callback;
+    device_config.pUserData = NULL;
+    device_config.playback.format = ma_format_s16;
+    device_config.playback.channels = format_context->streams[stream_index]->codecpar->ch_layout.nb_channels;
+
+    ma_device device;
+    ma_result ma_res;
+
+    if ((ma_res = ma_device_init(NULL, &device_config, &device)) != MA_SUCCESS) {
+        PRINT_TEXT(ma_result_description(ma_res));
+    }
+    else {
+        if ((ma_res = ma_device_start(&device)) != MA_SUCCESS) {
+            PRINT_TEXT(ma_result_description(ma_res));
+        }
+    }
+
+    getchar();
+
+    ma_device_uninit(&device);
+
+    return ma_res;
 
     glfwSetErrorCallback(glfw_error_callback);
 
     if (glfwInit() == GLFW_TRUE) {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
         glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+
+        GLFWwindow* window;
 
         if ((window = glfwCreateWindow(1280, 720, "Engine", NULL, NULL)) != NULL) {
             glfwMakeContextCurrent(window);
@@ -1797,15 +1864,14 @@ int main(int argc, char** argv) {
                 glDebugMessageCallback(ogl_debug_message_callback, NULL);
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
-                // glEnable(GL_CULL_FACE);
-                // glCullFace(GL_BACK);
-                // glFrontFace(GL_CCW);
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
+                glFrontFace(GL_CCW);
 
                 glEnable(GL_DEPTH_TEST);
 
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
                 while (glfwWindowShouldClose(window) == 0) {
                     glfwWaitEvents();
